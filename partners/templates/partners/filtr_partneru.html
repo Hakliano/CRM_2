@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Filtrovat partnery</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+</head>
+<body class="container py-5">
+    {% include 'partners/hlavicka.html' %}
+
+    <h1 class="mb-4">Filtrovat partnery</h1>
+
+    <form method="GET" class="mb-5">
+        <div class="row g-3">
+            <div class="col-md-3">
+                <input class="form-control" placeholder="Jméno" type="text" name="jmeno" value="{{ request.GET.jmeno }}">
+            </div>
+        <div class="row">
+            <div class="col">
+                <input type="text" class="form-control" name="mesto" placeholder="Město" value="{{ request.GET.mesto }}">
+            </div>
+            <div class="col">
+                <input type="text" class="form-control" name="cast_obce" placeholder="Část obce" value="{{ request.GET.cast_obce }}">
+            </div>
+            <div class="col">
+                <input type="number" class="form-control" name="oslovovaci_poradi" placeholder="Oslovovací pořadí" value="{{ request.GET.oslovovaci_poradi }}">
+            </div>
+            <div class="col">
+                <select class="form-control" name="kontaktovan">
+                    <option value="">--- Nerozhoduje ---</option>
+                    <option value="ano" {% if request.GET.kontaktovan == 'ano' %}selected{% endif %}>Ano</option>
+                    <option value="ne" {% if request.GET.kontaktovan == 'ne' %}selected{% endif %}>Ne</option>
+                </select>
+            </div>
+            <div class="col">
+                <button type="submit" class="btn btn-primary">Vyhledat</button>
+            </div>
+        </div>
+    </form>
+
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Jméno</th>
+                <th>Město</th>
+                <th>Část obce</th>
+                <th>Oslovovací pořadí</th>
+                <th>Kontaktován</th>
+                <th>Výsledek kontaktu</th>
+                <th>ICO</th>
+                <th>Detail</th>
+                <th>Akce</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for partner in partneri %}
+            <tr>
+                <td>{{ partner.jmeno }}</td>
+                <td>{{ partner.mesto }}</td>
+                <td>{{ partner.cast_obce }}</td>
+                <td>{{ partner.oslovovaci_poradi }}</td>
+                <td>{{ partner.kontaktovan|yesno:"Ano,Ne" }}</td>
+                <td>{{ partner.vysledek_kontaktu }}</td>
+                <td>{{ partner.ICO }}</td>
+                <td><a href="{% url 'partner_detail' partner.pk %}" class="btn btn-info btn-sm">Detail</a></td>
+                <td><a href="{% url 'editovat_partnera' partner.pk %}" class="btn btn-warning btn-sm">Editovat</a></td>
+
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="9">Žádný partner neodpovídá kritériím.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</body>
+</html>

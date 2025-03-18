@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <title>Seznam partnerů</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="container py-5">
+    {% include 'partners/hlavicka.html' %}
+
+    <h1 class="mb-4">Seznam všech partnerů</h1>
+
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>Jméno</th>
+                <th>Jednatel</th>
+                <th>Email</th>
+                <th>Telefon</th>
+                <th>Město</th>
+                <th>Část obce</th>
+                <th>Oslovovací pořadí</th>
+                <th>Web</th>
+                <th>Instagram</th>
+                <th>Facebook</th>
+                <th>Detail</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for partner in partneri %}
+            <tr>
+                <td>{{ partner.jmeno }}</td>
+                <td>{{ partner.jednatel }}</td>
+                <td><a href="mailto:{{ partner.email }}">{{ partner.email }}</a></td>
+                <td><a href="tel:{{ partner.telefon }}">{{ partner.telefon }}</a></td>
+                <td>{{ partner.mesto }}</td>
+                <td>{{ partner.cast_obce }}</td>
+                <td>{{ partner.oslovovaci_poradi }}</td>
+                <td><a href="{{ partner.web }}" target="_blank">{{ partner.web }}</a></td>
+                <td><a href="{{ partner.instagram }}" target="_blank">Instagram</a></td>
+                <td><a href="{{ partner.facebook }}" target="_blank">Facebook</a></td>
+                <td><a href="{% url 'partner_detail' partner.pk %}" class="btn btn-info btn-sm">Detail</a></td>
+
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="11">Žádní partneři nenalezeni.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <nav>
+      <ul class="pagination">
+        {% if partneri.has_previous %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ partneri.previous_page_number }}">Předchozí</a>
+          </li>
+        {% endif %}
+
+        <span class="mx-2">Stránka {{ partneri.number }} z {{ partneri.paginator.num_pages }}</span>
+
+        {% if partneri.has_next %}
+            <a href="?page={{ partneri.next_page_number }}" class="btn btn-primary">Další</a>
+        {% endif %}
+      </nav>
+
+</body>
+</html>

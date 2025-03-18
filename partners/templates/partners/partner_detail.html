@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <title>Detail partnera</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+</head>
+<body class="container py-4">
+
+    {% include 'partners/hlavicka.html' %}
+
+    <h2 class="mb-4">{{ partner.jmeno }}</h2>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h5 class="card-title">Informace o partnerovi</h5>
+            <table class="table table-striped">
+                <tbody>
+                    <tr><th>Jméno</th><td>{{ partner.jmeno }}</td></tr>
+                    <tr><th>Jednatel</th><td>{{ partner.jednatel }}</td></tr>
+                    <tr><th>ICO</th><td>{{ partner.ICO }}</td></tr>
+                    <tr><th>Email</th><td><a href="mailto:{{ partner.email }}">{{ partner.email }}</a></td></tr>
+                    <tr><th>Telefon</th><td><a href="tel:{{ partner.telefon }}">{{ partner.telefon }}</a></td></tr>
+                    <tr><th>Město</th><td>{{ partner.mesto }}</td></tr>
+                    <tr><th>Část obce</th><td>{{ partner.cast_obce }}</td></tr>
+                    <tr><th>Oslovovací pořadí</th><td>{{ partner.oslovovaci_poradi }}</td></tr>
+                    <tr><th>Web</th><td><a href="{{ partner.web }}" target="_blank">{{ partner.web }}</a></td></tr>
+                    <tr><th>Instagram</th><td><a href="{{ partner.instagram }}" target="_blank">Instagram</a></td></tr>
+                    <tr><th>Facebook</th><td><a href="{{ partner.facebook }}" target="_blank">Facebook</a></td></tr>
+                </tbody>
+            </table>
+
+            <!-- Formulář pro uložení poznámek -->
+            <form method="POST" action="{% url 'ulozit_poznamky' partner.id %}">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="description" class="form-label">Poznámky</label>
+                    <textarea class="form-control" name="description" rows="4">{{ partner.description }}</textarea>
+                </div>
+                <button type="submit" class="btn btn-success">Uložit poznámky</button>
+            </form>
+
+            <!-- Editace a smazání -->
+            <a href="{% url 'editovat_partnera' partner.id %}" class="btn btn-warning mt-2">Editovat</a>
+            <a href="{% url 'smazat_partnera' partner.id %}" class="btn btn-danger mt-2">Smazat</a>
+        </div>
+    </div>
+
+    <!-- Mapa s lokací partnera -->
+    <div class="card shadow-sm mt-4">
+        <div class="card-body">
+            <h5 class="card-title">Umístění na mapě</h5>
+            <div id="map" style="height: 400px;"></div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        const map = L.map('map').setView([{{ partner.latitude }}, {{ partner.longitude }}], 15);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        L.marker([{{ partner.latitude }}, {{ partner.longitude }}])
+            .addTo(map)
+            .bindPopup("<strong>{{ partner.jmeno }}</strong><br>{{ partner.mesto }}");
+    </script>
+
+</body>
+</html>
