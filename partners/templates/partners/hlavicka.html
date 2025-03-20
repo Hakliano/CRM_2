@@ -27,15 +27,15 @@
 
             <div class="d-flex align-items-center">
                 {% if request.user.is_authenticated %}
-                    <span class="navbar-text text-light me-3">
-                        Přihlášen: {{ request.user.username }}
-                    </span>
-                    <a  style="margin-left:50px;"class="btn btn-outline-danger" href="{% url 'logout' %}">Odhlásit se</a>
+                <form method="post" action="{% url 'logout' %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-outline-danger">Odhlásit se</button>
+                </form>
                 {% else %}
-                    <span class="navbar-text text-light me-3">
-                        Nejste přihlášen!
-                    </span>
-                    <a  style="margin-left:50px;"class="btn btn-outline-light" href="{% url 'login' %}">Login</a>
+                <form method="post" action="{% url 'login' %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-outline-danger">Login</button>
+                </form>
                 {% endif %}
             </div>
     </div>
