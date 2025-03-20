@@ -1,3 +1,4 @@
+
 import json
 from django.shortcuts import render, redirect, get_object_or_404
 from django.core.paginator import Paginator
@@ -6,7 +7,7 @@ from django.contrib.auth.models import User
 from django.http import JsonResponse
 from django.db.models import Count, Q
 from django.contrib import messages
-from .models import Partner
+from .models import Partner, Sekce
 from .forms import PartnerForm, PartnerFilterForm
 
 
@@ -37,28 +38,31 @@ def seznam_partneru(request):
 def filtrovat_partnery(request):
     form = PartnerFilterForm(request.GET or None)
     partneri = Partner.objects.all()
+    sekce_list = Sekce.objects.all()
 
     if form.is_valid():
-        if form.cleaned_data['jmeno']:
-            partneri = partneri.filter(jmeno__icontains=form.cleaned_data['jmeno'])
-        if form.cleaned_data['mesto']:
-            partneri = partneri.filter(mesto__icontains=form.cleaned_data['mesto'])
-        if form.cleaned_data['cast_obce']:
-            partneri = partneri.filter(cast_obce__icontains=form.cleaned_data['cast_obce'])
-        if form.cleaned_data['sekce']:
-            partneri = partneri.filter(sekce=form.cleaned_data['sekce'])
-        if form.cleaned_data['oslovovaci_poradi']:
-            partneri = partneri.filter(oslovovaci_poradi=form.cleaned_data['oslovovaci_poradi'])
-        if form.cleaned_data['created_by']:
-            partneri = partneri.filter(created_by=form.cleaned_data['created_by'])
-        if form.cleaned_data['kontaktovan']:
-            partneri = partneri.filter(kontaktovan=form.cleaned_data['kontaktovan'] == 'True')
-        if form.cleaned_data['vysledek_kontaktu']:
-            partneri = partneri.filter(vysledek_kontaktu__icontains=form.cleaned_data['vysledek_kontaktu'])
-        if form.cleaned_data['ICO']:
-            partneri = partneri.filter(ICO=form.cleaned_data['ICO'] == 'True')
+        data = form.cleaned_data
 
-    return render(request, 'partners/filtr_partneru.html', {'form': form, 'partneri': partneri})
+        if data['jmeno']:
+            partneri = partneri.filter(jmeno__icontains=data['jmeno'])
+        if data['mesto']:
+            partneri = partneri.filter(mesto__icontains=data['mesto'])
+        if data['cast_obce']:
+            partneri = partneri.filter(cast_obce__icontains=data['cast_obce'])
+        if data['sekce']:
+            partneri = partneri.filter(sekce=data['sekce'])
+        if data['oslovovaci_poradi'] is not None:
+            partneri = partneri.filter(oslovovaci_poradi=data['oslovovaci_poradi'])
+        if data['created_by']:
+            partneri = partneri.filter(created_by=data['created_by'])
+        if data['kontaktovan'] in ['True', 'False']:  # Opraveno!
+            partneri = partneri.filter(kontaktovan=(data['kontaktovan'] == 'True'))
+        if data['vysledek_kontaktu']:
+            partneri = partneri.filter(vysledek_kontaktu__icontains=data['vysledek_kontaktu'])
+
+    return render(request, 'partners/filtr_partneru.html', {'form': form, 'partneri': partneri, 'sekce_list': sekce_list})
+
+
 
 def home(request):
     uzivatele = User.objects.annotate(pocet_partneru=Count('partner'))
