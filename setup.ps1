@@ -6,5 +6,6 @@ if (-Not (Test-Path "venv")) {
     Write-Output "ℹ️ Virtuální prostředí už existuje."
 }
 
-# 2. Aktivace v novém procesu PowerShell a instalace requirements
-Start-Process powershell -ArgumentList "-NoExit", "-Command `"& `"./venv/Scripts/Activate.ps1`"; pip install --upgrade pip; pip install -r requirements.txt`""
+# 2. Spuštění nového PowerShellu s aktivací venv a instalací balíčků
+$command = '.\venv\Scripts\Activate.ps1; pip install --upgrade pip; pip install -r requirements.txt'
+Start-Process powershell -ArgumentList "-NoExit", "-Command `$command"
