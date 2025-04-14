@@ -17,4 +17,6 @@ urlpatterns = [
     path('<int:pk>/ulozit_poznamky/', views.ulozit_poznamky, name='ulozit_poznamky'),
     path('login/', LoginView.as_view(template_name='partners/login.html', next_page='seznam_partneru'), name='login'),
     path('logout/', LogoutView.as_view(next_page="/"), name='logout'),
+    path('check-ico/', views.check_ico, name='check_ico'),
+
 ]

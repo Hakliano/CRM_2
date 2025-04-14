@@ -1,5 +1,5 @@
-
 import json
+import requests
 from django.shortcuts import render, redirect, get_object_or_404
 from django.core.paginator import Paginator
 from django.contrib.auth.decorators import login_required
@@ -9,6 +9,7 @@ from django.db.models import Count, Q
 from django.contrib import messages
 from .models import Partner, Sekce
 from .forms import PartnerForm, PartnerFilterForm
+from django.views.decorators.http import require_GET
 
 
 @login_required
@@ -169,3 +170,35 @@ def ulozit_poznamky(request, pk):
         partner.save()
         messages.success(request, "Poznámky byly uloženy.")
     return redirect('partner_detail', pk=partner.pk)
+
+
+    
+def check_ico(request):
+    ico = request.GET.get('ico')
+    exists = Partner.objects.filter(ICO=ico).exists()
+    return JsonResponse({'exists': exists})
+
+
+@require_GET
+def ares_lookup(request):
+    ico = request.GET.get('ico')
+    if not ico or not ico.isdigit() or len(ico) != 8:
+        return JsonResponse({'error': 'Neplatné IČO'}, status=400)
+
+    url = f"https://ares.gov.cz/ekonomicke-subjekty-v-be/rest/ekonomicke-subjekty/{ico}"
+    response = requests.get(url)
+
+    if response.status_code != 200:
+        return JsonResponse({'error': 'Nepodařilo se připojit k ARES'}, status=500)
+
+    data = response.json()
+
+    if 'obchodniJmeno' not in data:
+        return JsonResponse({'error': 'Subjekt s tímto IČO nebyl nalezen'}, status=404)
+
+    vystup = {
+        'jmeno': data.get('obchodniJmeno'),
+        'adresa': data.get('sidlo', {}).get('textovaAdresa'),
+        'mesto': data.get('sidlo', {}).get('nazevObce', ''),
+    }
+    return JsonResponse(vystup)

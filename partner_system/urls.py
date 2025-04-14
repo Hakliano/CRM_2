@@ -8,4 +8,7 @@ from partners import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('partners.urls')),
+    path('', partner_views.home, name='home'),
+    path('check-ico/', partner_views.check_ico, name='check_ico'), 
+    path('ares-lookup/', partner_views.ares_lookup, name='ares_lookup'),
 ]
