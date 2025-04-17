@@ -1,109 +1,108 @@
 <!DOCTYPE html>
 <html lang="cs">
-<head>
-    <meta charset="UTF-8">
+  <head>
+    <meta charset="UTF-8" />
     <title>Přidání nového partnera</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body class="container py-5">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  </head>
+  <body class="container py-5">
     {% if messages %}
-    <div class="container">
+      <div class="container">
         {% for message in messages %}
-            <div class="alert alert-success">{{ message }}</div>
+          <div class="alert alert-success">{{ message }}</div>
         {% endfor %}
-    </div>
-{% endif %}
+      </div>
+    {% endif %}
 
     {% include 'partners/hlavicka.html' %}
-    
+
     <div class="mb-4">
-        <label for="ico-kontrola" class="form-label">Kontrola IČO:</label>
-        <div class="input-group">
-            <input type="text" id="ico-kontrola" class="form-control" maxlength="8" placeholder="Zadejte IČO">
-            <button class="btn btn-outline-primary" type="button" id="nacist-ares">Načíst z ARES</button>
-        </div>
-        <div id="ico-status" class="form-text mt-1 fw-bold"></div>
+      <label for="ico-kontrola" class="form-label">Kontrola IČO:</label>
+      <div class="input-group">
+        <input type="text" id="ico-kontrola" class="form-control" maxlength="8" placeholder="Zadejte IČO" />
+        <button class="btn btn-outline-primary" type="button" id="nacist-ares">Načíst z ARES</button>
+      </div>
+      <div id="ico-status" class="form-text mt-1 fw-bold"></div>
     </div>
 
     <h1 class="mb-4">Přidání nového partnera</h1>
 
     <form method="POST">
-        {% csrf_token %}
-        <div class="row">
-            {% for field in form %}
-                <div class="mb-3">
-                    <label class="form-label">{{ field.label_tag }}</label>
-                    {{ field }}
-                    {% if field.errors %}
-                        <div class="text-danger">{{ field.errors }}</div>
-                    {% endif %}
-                </div>
-            {% endfor %}
-        <button type="submit" class="btn btn-success">Uložit partnera</button>
+      {% csrf_token %}
+      <div class="row">
+        {% for field in form %}
+          <div class="mb-3">
+            <label class="form-label">{{ field.label_tag }}</label>
+            {{ field }}
+            {% if field.errors %}
+              <div class="text-danger">{{ field.errors }}</div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div> <!-- ← přidáno -->
+      <button type="submit" class="btn btn-success">Uložit partnera</button>
     </form>
 
     <p id="ico-status" class="mt-2 fw-bold"></p>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const icoInput = document.getElementById('ico-kontrola');
-            const status = document.getElementById('ico-status');
-            const nactiBtn = document.getElementById('nacist-ares');
-        
-            // ✅ Automatická kontrola existence IČO v systému
-            icoInput.addEventListener('input', function () {
-                const ico = this.value;
-        
-                if (ico.length === 8 && !isNaN(ico)) {
-                    fetch(`/check-ico/?ico=${ico}`)
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.exists) {
-                                status.textContent = "❌ Partner s tímto IČO již v systému existuje.";
-                                status.classList.remove('text-success');
-                                status.classList.add('text-danger');
-                            } else {
-                                status.textContent = "✅ Partner s tímto IČO ještě není v systému.";
-                                status.classList.remove('text-danger');
-                                status.classList.add('text-success');
-                            }
-                        });
+      document.addEventListener('DOMContentLoaded', function () {
+        const icoInput = document.getElementById('ico-kontrola')
+        const status = document.getElementById('ico-status')
+        const nactiBtn = document.getElementById('nacist-ares')
+      
+        // ✅ Automatická kontrola existence IČO v systému
+        icoInput.addEventListener('input', function () {
+          const ico = this.value
+      
+          if (ico.length === 8 && !isNaN(ico)) {
+            fetch(`/check-ico/?ico=${ico}`)
+              .then((response) => response.json())
+              .then((data) => {
+                if (data.exists) {
+                  status.textContent = '❌ Partner s tímto IČO již v systému existuje.'
+                  status.classList.remove('text-success')
+                  status.classList.add('text-danger')
                 } else {
-                    status.textContent = "";
+                  status.textContent = '✅ Partner s tímto IČO ještě není v systému.'
+                  status.classList.remove('text-danger')
+                  status.classList.add('text-success')
                 }
-            });
-        
-            // ✅ Načíst údaje z ARES
-            nactiBtn.addEventListener('click', function () {
-                const ico = icoInput.value;
-        
-                if (ico.length === 8 && !isNaN(ico)) {
-                    fetch(`/ares-lookup/?ico=${ico}`)
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.error) {
-                                alert("Chyba: " + data.error);
-                            } else {
-                                // Předvyplníme pole z ARESu – přizpůsobte podle názvů polí ve formuláři
-                                document.getElementById('id_jmeno').value = data.jmeno || '';
-                                document.getElementById('id_adresa').value = data.adresa || '';
-                                document.getElementById('id_mesto').value = data.mesto || '';
-                                status.textContent = "✅ Údaje byly načteny z ARES.";
-                                status.classList.remove('text-danger');
-                                status.classList.add('text-success');
-                            }
-                        })
-                        .catch(err => {
-                            alert("Došlo k chybě při načítání z ARES.");
-                            console.error(err);
-                        });
+              })
+          } else {
+            status.textContent = ''
+          }
+        })
+      
+        // ✅ Načíst údaje z ARES
+        nactiBtn.addEventListener('click', function () {
+          const ico = icoInput.value
+      
+          if (ico.length === 8 && !isNaN(ico)) {
+            fetch(`/ares-lookup/?ico=${ico}`)
+              .then((response) => response.json())
+              .then((data) => {
+                if (data.error) {
+                  alert('Chyba: ' + data.error)
                 } else {
-                    alert("Zadejte platné IČO (8 číslic).");
+                  // Předvyplníme pole z ARESu – přizpůsobte podle názvů polí ve formuláři
+                  document.getElementById('id_jmeno').value = data.jmeno || ''
+                  document.getElementById('id_adresa').value = data.adresa || ''
+                  document.getElementById('id_mesto').value = data.mesto || ''
+                  status.textContent = '✅ Údaje byly načteny z ARES.'
+                  status.classList.remove('text-danger')
+                  status.classList.add('text-success')
                 }
-            });
-        });
-        </script>
-        
-
-</body>
+              })
+              .catch((err) => {
+                alert('Došlo k chybě při načítání z ARES.')
+                console.error(err)
+              })
+          } else {
+            alert('Zadejte platné IČO (8 číslic).')
+          }
+        })
+      })
+    </script>
+  </body>
 </html>
