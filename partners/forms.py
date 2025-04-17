@@ -1,12 +1,43 @@
 from django import forms
 from .models import Sekce, Partner
 from django.contrib.auth.models import User
+from decimal import Decimal, ROUND_DOWN
+
 
 class PartnerForm(forms.ModelForm):
     class Meta:
         model = Partner
         fields = '__all__'
         exclude = ['created_by', 'kontaktovan', 'vysledek_kontaktu']
+        widgets = {
+            'longitude': forms.TextInput(attrs={
+                'type': 'text',
+                'maxlength': '40',
+                'inputmode': 'decimal',
+                'placeholder': 'např. 14.42076000',
+                'pattern': r'^-?\d{1,12}(\.\d{1,20})?$',
+            }),
+            'latitude': forms.TextInput(attrs={
+                'type': 'text',
+                'maxlength': '40',
+                'inputmode': 'decimal',
+                'placeholder': 'např. 50.08804000',
+                'pattern': r'^-?\d{1,12}(\.\d{1,20})?$',
+            }),
+        }
+ 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['longitude'].localize = False
+        self.fields['latitude'].localize = False
+ 
+    def clean_longitude(self):
+        value = self.cleaned_data['longitude']
+        return value.quantize(Decimal('0.00000001'), rounding=ROUND_DOWN)
+ 
+    def clean_latitude(self):
+        value = self.cleaned_data['latitude']
+        return value.quantize(Decimal('0.00000001'), rounding=ROUND_DOWN)
 
 class PartnerFilterForm(forms.Form):
     jmeno = forms.CharField(required=False, label="Jméno")

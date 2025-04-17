@@ -12,7 +12,7 @@ urlpatterns = [
     path('editovat/<int:pk>/', views.editovat_partnera, name='editovat_partnera'),
     path('api/partneri/', views.partneri_json, name='partneri_json'),
     path('mapa/', views.mapa_partneru, name='mapa_partneru'),
-    path('<int:pk>/', views.partner_detail, name='partner_detail'),
+    path('partners/partner_detail/<int:pk>/', views.partner_detail, name='partner_detail'),
     path('<int:pk>/smazat/', views.smazat_partnera, name='smazat_partnera'),
     path('<int:pk>/ulozit_poznamky/', views.ulozit_poznamky, name='ulozit_poznamky'),
     path('login/', LoginView.as_view(template_name='partners/login.html', next_page='seznam_partneru'), name='login'),
