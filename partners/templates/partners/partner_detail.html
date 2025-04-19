@@ -11,6 +11,14 @@
     {% include 'partners/hlavicka.html' %}
 
     <h2 class="mb-4">{{ partner.jmeno }}</h2>
+<h5>Key Account Manager - 
+        {% if partner.key_account_manager %}
+            {{ partner.key_account_manager.get_full_name|default:partner.key_account_manager.username }}
+        {% else %}
+            <span class="text-muted">Není přiřazen</span>
+        {% endif %}</h5>
+
+
 
     <div class="card shadow-sm">
         <div class="card-body">
@@ -58,7 +66,60 @@
             <a href="{% url 'editovat_partnera' partner.id %}" class="btn btn-warning mt-2">Editovat</a>
             <a href="{% url 'smazat_partnera' partner.id %}" class="btn btn-danger mt-2">Smazat</a>
         </div>
+
+        <h5 class="mt-4">Přidat záznam o kontaktu</h5>
+            <form method="POST" action="{% url 'pridat_kontakt' partner.id %}">
+            {% csrf_token %}
+            <div class="row mb-2">
+                <div class="col">
+                <select name="zpusob" class="form-control">
+                    <option value="telefon">📞 Telefon</option>
+                    <option value="osobne">🤝 Osobně</option>
+                    <option value="email">📧 E-mail</option>
+                    <option value="sms">💬 SMS</option>
+                    <option value="jinak">🔁 Jinak</option>
+                </select>
+                </div>
+                <div class="col">
+                <select name="vysledek" class="form-control">
+                    <option value="nezajem">❌ Nemá zájem</option>
+                    <option value="schuzka">📅 Domluvená schůzka</option>
+                    <option value="zajem">👍 Má zájem</option>
+                    <option value="uzavreno">✅ Obchod uzavřen</option>
+                    <option value="free_ucet">🆓 Free účet</option>
+                </select>
+                </div>
+            </div>
+            <textarea name="poznamka" rows="2" class="form-control mb-2" placeholder="Poznámka (volitelné)..."></textarea>
+            <button type="submit" class="btn btn-outline-success">💾 Uložit kontakt</button>
+            </form>
     </div>
+
+    <h4 class="mt-5">Historie kontaktů</h4>
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>Datum</th>
+      <th>Způsob</th>
+      <th>Výsledek</th>
+      <th>Poznámka</th>
+      <th>Zadal</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for kontakt in kontakty %}
+    <tr>
+      <td>{{ kontakt.datum|date:"d.m.Y H:i" }}</td>
+      <td>{{ kontakt.get_zpusob_display }}</td>
+      <td>{{ kontakt.get_vysledek_display }}</td>
+      <td>{{ kontakt.poznamka }}</td>
+      <td>{{ kontakt.kontaktoval }}</td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="5">Zatím žádné kontakty.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
 
     <!-- Mapa s lokací partnera -->
     <div class="card shadow-sm mt-4">

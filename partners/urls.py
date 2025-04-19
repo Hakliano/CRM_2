@@ -18,4 +18,5 @@ urlpatterns = [
     path('login/', LoginView.as_view(template_name='partners/login.html', next_page='/'), name='login'),
     path('logout/', LogoutView.as_view(next_page="/"), name='logout'),
     path('check-ico/', views.check_ico, name='check_ico'),
+    path("partner/<int:pk>/kontakt/", views.pridat_kontakt, name="pridat_kontakt"),
 ]

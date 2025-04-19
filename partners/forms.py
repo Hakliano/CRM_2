@@ -82,3 +82,10 @@ class PartnerFilterForm(forms.Form):
         label="Kontaktován",
     )
     vysledek_kontaktu = forms.CharField(required=False, label="Výsledek kontaktu")
+
+    key_account_manager = forms.ModelChoiceField(
+    queryset=User.objects.all(),
+    required=False,
+    label="Key Account Manager",
+    empty_label="--- Nerozhoduje ---",
+)

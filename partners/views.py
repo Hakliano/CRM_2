@@ -7,9 +7,10 @@ from django.contrib.auth.models import User
 from django.http import JsonResponse
 from django.db.models import Count, Q
 from django.contrib import messages
-from .models import Partner, Sekce
+from .models import Partner, Sekce, KontaktHistorie
 from .forms import PartnerForm, PartnerFilterForm
 from django.views.decorators.http import require_GET
+from django.db.models import OuterRef, Subquery
 
 
 @login_required
@@ -40,6 +41,15 @@ def filtrovat_partnery(request):
     form = PartnerFilterForm(request.GET or None)
     partneri = Partner.objects.all()
     sekce_list = Sekce.objects.all()
+    # Subquery pro poslední kontakt
+    last_contact = KontaktHistorie.objects.filter(partner=OuterRef('pk')).order_by('-datum')
+
+    partneri = partneri.annotate(
+        posledni_datum=Subquery(last_contact.values('datum')[:1]),
+        posledni_zpusob=Subquery(last_contact.values('zpusob')[:1]),
+        posledni_vysledek=Subquery(last_contact.values('vysledek')[:1]),
+        posledni_kontaktoval=Subquery(last_contact.values('kontaktoval__username')[:1]),
+    )
 
     if form.is_valid():
         data = form.cleaned_data
@@ -60,6 +70,8 @@ def filtrovat_partnery(request):
             partneri = partneri.filter(kontaktovan=(data['kontaktovan'] == 'True'))
         if data['vysledek_kontaktu']:
             partneri = partneri.filter(vysledek_kontaktu__icontains=data['vysledek_kontaktu'])
+        if data['key_account_manager']:
+            partneri = partneri.filter(key_account_manager=data['key_account_manager'])    
 
     return render(request, 'partners/filtr_partneru.html', {'form': form, 'partneri': partneri, 'sekce_list': sekce_list})
 
@@ -132,6 +144,8 @@ def mapa_partneru(request):
             partneri = partneri.filter(kontaktovan=form.cleaned_data['kontaktovan'] == 'True')
         if form.cleaned_data['vysledek_kontaktu']:
             partneri = partneri.filter(vysledek_kontaktu__icontains=form.cleaned_data['vysledek_kontaktu'])
+        if form.cleaned_data['key_account_manager']:
+            partneri = partneri.filter(key_account_manager=form.cleaned_data['key_account_manager'])
 
     partneri_list = list(partneri.values('id', 'jmeno', 'mesto', 'cast_obce', 'latitude', 'longitude', 'oslovovaci_poradi'))
     
@@ -150,8 +164,11 @@ def mapa_partneru(request):
 @login_required
 def partner_detail(request, pk):
     partner = get_object_or_404(Partner, pk=pk)
-    return render(request, 'partners/partner_detail.html', {'partner': partner})
-
+    kontakty = KontaktHistorie.objects.filter(partner=partner).order_by('-datum')
+    return render(request, 'partners/partner_detail.html', {
+        'partner': partner,
+        'kontakty': kontakty,
+    })
 @login_required
 def smazat_partnera(request, pk):
     partner = get_object_or_404(Partner, pk=pk)
@@ -202,3 +219,28 @@ def ares_lookup(request):
         'mesto': data.get('sidlo', {}).get('nazevObce', ''),
     }
     return JsonResponse(vystup)
+
+@login_required
+def pridat_kontakt(request, pk):
+    partner = get_object_or_404(Partner, pk=pk)
+    if request.method == "POST":
+        zpusob = request.POST.get("zpusob")
+        vysledek = request.POST.get("vysledek")
+        poznamka = request.POST.get("poznamka")
+
+        # Vytvoříme nový kontakt
+        kontakt = KontaktHistorie.objects.create(
+            partner=partner,
+            kontaktoval=request.user,
+            zpusob=zpusob,
+            vysledek=vysledek,
+            poznamka=poznamka
+        )
+
+        # Pokud výsledek je "uzavreno", nastavíme Key Account Managera
+        if vysledek == "uzavreno":
+            partner.key_account_manager = request.user
+            partner.save()
+
+        messages.success(request, "Záznam o kontaktu byl uložen.")
+    return redirect("partner_detail", pk=pk)

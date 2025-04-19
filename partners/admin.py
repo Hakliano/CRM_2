@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Partner, Sekce
+from .models import Partner, Sekce, KontaktHistorie
 from .forms import PartnerForm
 
 
@@ -29,3 +29,9 @@ class PartnerAdmin(admin.ModelAdmin):
 class SekceAdmin(admin.ModelAdmin):
     list_display = ("nazev",)
     search_fields = ("nazev",)
+
+
+@admin.register(KontaktHistorie)
+class KontaktHistorieAdmin(admin.ModelAdmin):
+    list_display = ['partner', 'datum', 'zpusob', 'vysledek', 'kontaktoval']
+    list_filter = ['zpusob', 'vysledek', 'kontaktoval']

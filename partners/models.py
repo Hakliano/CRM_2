@@ -12,6 +12,7 @@ class Partner(models.Model):
     mesto = models.CharField(max_length=100)
     cast_obce = models.CharField(max_length=100, blank=True, null=True)
     oslovovaci_poradi = models.IntegerField(default=0)
+    key_account_manager = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name='klienti')
     longitude = models.DecimalField(
         max_digits=50, decimal_places=45, blank=False, null=False
     )
@@ -57,3 +58,35 @@ class PartnerSection(models.Model):
 
     def __str__(self):
         return f"{self.partner.jmeno} – {self.sekce.nazev}"
+
+
+class KontaktHistorie(models.Model):
+    ZPUSOBY_KONTAKTU = [
+        ('telefon', 'Telefon'),
+        ('osobne', 'Osobně'),
+        ('email', 'E-mail'),
+        ('sms', 'SMS'),
+        ('jinak', 'Jinak'),
+    ]
+
+    VYSLEDKY_KONTAKTU = [
+        ('nezajem', 'Nemá zájem'),
+        ('schuzka', 'Domluvená schůzka'),
+        ('zajem', 'Má zájem'),
+        ('uzavreno', 'Obchod uzavřen'),
+        ('free_ucet', 'Free účet'),
+    ]
+
+    partner = models.ForeignKey("Partner", on_delete=models.CASCADE, related_name="kontakty")
+    kontaktoval = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    datum = models.DateTimeField(auto_now_add=True)
+    zpusob = models.CharField(max_length=20, choices=ZPUSOBY_KONTAKTU)
+    vysledek = models.CharField(max_length=20, choices=VYSLEDKY_KONTAKTU)
+    poznamka = models.TextField(blank=True, null=True)
+
+    class Meta:
+        ordering = ["-datum"]
+
+    def __str__(self):
+        return f"{self.partner.jmeno} – {self.get_zpusob_display()} ({self.get_vysledek_display()}) – {self.datum.date()}"
+       

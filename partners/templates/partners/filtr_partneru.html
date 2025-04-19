@@ -28,10 +28,13 @@
                 <input type="number" class="form-control" name="oslovovaci_poradi" placeholder="Oslovovací pořadí" value="{{ request.GET.oslovovaci_poradi }}">
             </div>
             <div class="col">
-                <select class="form-control" name="kontaktovan">
-                    <option value="">--- Nerozhoduje ---</option>
-                    <option value="ano" {% if request.GET.kontaktovan == 'ano' %}selected{% endif %}>Ano</option>
-                    <option value="ne" {% if request.GET.kontaktovan == 'ne' %}selected{% endif %}>Ne</option>
+                <select class="form-control" name="key_account_manager">
+                    <option value="">--- Key Account Manager ---</option>
+                    {% for uzivatel in form.fields.key_account_manager.queryset %}
+                        <option value="{{ uzivatel.id }}" {% if request.GET.key_account_manager == uzivatel.id|stringformat:"s" %}selected{% endif %}>
+                            {{ uzivatel.get_full_name|default:uzivatel.username }}
+                        </option>
+                    {% endfor %}
                 </select>
             </div>
             <div class="col">
@@ -55,12 +58,17 @@
                 <th>Město</th>
                 <th>Část obce</th>
                 <th>Oslovovací pořadí</th>
-                <th>Kontaktován</th>
                 <th>Výsledek kontaktu</th>
                 <th>ICO</th>
+                <th>Key Account Manager</th>
+                <th>Poslední kontakt</th>
+                <th>Způsob</th>
+                <th>Výsledek</th>
+                <th>Zadal</th>
                 <th>Sekce</th>
                 <th>Detail</th>
                 <th>Akce</th>
+                
             </tr>
         </thead>
         <tbody>
@@ -70,9 +78,19 @@
                 <td>{{ partner.mesto }}</td>
                 <td>{{ partner.cast_obce }}</td>
                 <td>{{ partner.oslovovaci_poradi }}</td>
-                <td>{{ partner.kontaktovan|yesno:"Ano,Ne" }}</td>
                 <td>{{ partner.vysledek_kontaktu }}</td>
                 <td>{{ partner.ICO }}</td>
+                <td>
+                    {% if partner.key_account_manager %}
+                        {{ partner.key_account_manager.get_full_name|default:partner.key_account_manager.username }}
+                    {% else %}
+                        <span class="text-muted">Není přiřazen</span>
+                    {% endif %}
+                </td>
+                <td>{{ partner.posledni_datum|date:"d.m.Y H:i" }}</td>
+                <td>{{ partner.posledni_zpusob }}</td>
+                <td>{{ partner.posledni_vysledek }}</td>
+                <td>{{ partner.posledni_kontaktoval }}</td>
                 <td>
                     {{ partner.sekce.nazev }}
                     {% if partner.sekce_sekundarni.all %}
