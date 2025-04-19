@@ -25,6 +25,7 @@ class Partner(models.Model):
     kontaktovan = models.BooleanField(default=False)
     vysledek_kontaktu = models.TextField(blank=True, null=True)
     sekce = models.ForeignKey("Sekce", on_delete=models.SET_DEFAULT, default=1)
+    sekce_sekundarni = models.ManyToManyField("Sekce", blank=True, related_name="partneri_sekundarni")
     description = models.TextField(blank=True, null=True)
     ICO = models.CharField(blank=False, null=True, max_length=8, unique=True)
 
@@ -45,3 +46,14 @@ class Sekce(models.Model):
 
     def __str__(self):
         return self.nazev
+
+
+class PartnerSection(models.Model):
+    partner = models.ForeignKey("Partner", on_delete=models.CASCADE)
+    sekce = models.ForeignKey("Sekce", on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = ("partner", "sekce")
+
+    def __str__(self):
+        return f"{self.partner.jmeno} – {self.sekce.nazev}"

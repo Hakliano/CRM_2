@@ -2,9 +2,16 @@ from django import forms
 from .models import Sekce, Partner
 from django.contrib.auth.models import User
 from decimal import Decimal, ROUND_DOWN
+from django.forms.widgets import CheckboxSelectMultiple
 
 
 class PartnerForm(forms.ModelForm):
+    sekce_sekundarni = forms.ModelMultipleChoiceField(
+        queryset=Sekce.objects.none(),
+        widget=forms.CheckboxSelectMultiple(),
+        required=False,
+        label="Doplňkové sekce" 
+    )  
     class Meta:
         model = Partner
         fields = "__all__"
@@ -29,11 +36,15 @@ class PartnerForm(forms.ModelForm):
                 }
             ),
         }
+      
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["longitude"].localize = False
         self.fields["latitude"].localize = False
+        self.fields["sekce_sekundarni"].widget = forms.CheckboxSelectMultiple()
+        self.fields["sekce_sekundarni"].label = "Doplňkové sekce"
+        self.fields["sekce_sekundarni"].queryset = Sekce.objects.all()
 
 
     def clean_longitude(self):

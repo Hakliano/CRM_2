@@ -1,108 +1,175 @@
 <!DOCTYPE html>
 <html lang="cs">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Přidání nového partnera</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-  </head>
-  <body class="container py-5">
-    {% if messages %}
-      <div class="container">
-        {% for message in messages %}
-          <div class="alert alert-success">{{ message }}</div>
-        {% endfor %}
-      </div>
-    {% endif %}
+<head>
+  <meta charset="UTF-8" />
+  <title>Přidání nového partnera</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <style>
+    body {
+      background: linear-gradient(135deg, #f0f8ff, #e6f7ff);
+      font-family: 'Segoe UI', sans-serif;
+      color:rgb(13, 102, 68);
+    }
 
-    {% include 'partners/hlavicka.html' %}
+    h1 {
+      font-size: 2.5rem;
+      color: 13, 102, 68;
+      font-weight: bold;
+      margin-bottom: 1.5rem;
+    }
 
-    <div class="mb-4">
-      <label for="ico-kontrola" class="form-label">Kontrola IČO:</label>
-      <div class="input-group">
-        <input type="text" id="ico-kontrola" class="form-control" maxlength="8" placeholder="Zadejte IČO" />
-        <button class="btn btn-outline-primary" type="button" id="nacist-ares">Načíst z ARES</button>
-      </div>
-      <div id="ico-status" class="form-text mt-1 fw-bold"></div>
+    .form-section {
+      background-color: #ffffffdd;
+      border-radius: 1.5rem;
+      padding: 2rem;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    }
+
+    label {
+      font-weight: 600;
+      color:rgb(13, 102, 68);
+    }
+
+    .form-control {
+      border-radius: 1rem;
+      font-size: 1.1rem;
+      padding: 0.75rem;
+    }
+
+    .btn-success {
+      border-radius: 1rem;
+      font-size: 1.1rem;
+      padding: 0.7rem 2rem;
+      background: linear-gradient(45deg, #28a745, #218838);
+      border: none;
+    }
+
+    .ico-box {
+      background-color:rgb(221, 174, 20);
+      padding: 1rem;
+      border-radius: 1rem;
+      margin-bottom: 2rem;
+      box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.05);
+    }
+
+    .form-check-label {
+      font-weight: normal;
+    }
+
+    .form-check {
+      margin-right: 1rem;
+    }
+  </style>
+</head>
+<body class="container py-5">
+
+  {% if messages %}
+    <div class="container mb-4">
+      {% for message in messages %}
+        <div class="alert alert-success">{{ message }}</div>
+      {% endfor %}
     </div>
+  {% endif %}
 
-    <h1 class="mb-4">Přidání nového partnera</h1>
+  {% include 'partners/hlavicka.html' %}
 
+  <div class="ico-box">
+    <label for="ico-kontrola" class="form-label">Kontrola IČO:</label>
+    <div class="input-group">
+      <input type="text" id="ico-kontrola" class="form-control" maxlength="8" placeholder="Zadejte IČO" />
+      <button class="btn btn-outline-primary" type="button" id="nacist-ares">Načíst z ARES</button>
+    </div>
+    <div id="ico-status" class="form-text mt-2 fw-bold text-danger"></div>
+  </div>
+
+  <h1>Přidání nového partnera</h1>
+
+  <div class="mb-4">
+    <label class="form-label">Nabídka:</label>
+    <div class="d-flex flex-wrap">
+      {{ form.sekce_sekundarni }}
+    </div>
+    {% if form.sekce_sekundarni.errors %}
+      <div class="text-danger">{{ form.sekce_sekundarni.errors }}</div>
+    {% endif %}
+  </div>
+
+  <div class="form-section">
     <form method="POST">
       {% csrf_token %}
       <div class="row">
         {% for field in form %}
-          <div class="mb-3">
-            <label class="form-label">{{ field.label_tag }}</label>
-            {{ field }}
-            {% if field.errors %}
-              <div class="text-danger">{{ field.errors }}</div>
-            {% endif %}
-          </div>
+          {% if field.name != "sekce_sekundarni" %}
+            <div class="col-md-6 mb-4">
+              <label class="form-label">{{ field.label_tag }}</label>
+              {{ field }}
+              {% if field.errors %}
+                <div class="text-danger">{{ field.errors }}</div>
+              {% endif %}
+            </div>
+          {% endif %}
         {% endfor %}
-      </div> <!-- ← přidáno -->
+      </div>
+
+
       <button type="submit" class="btn btn-success">Uložit partnera</button>
     </form>
+  </div>
 
-    <p id="ico-status" class="mt-2 fw-bold"></p>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const icoInput = document.getElementById('ico-kontrola')
+      const status = document.getElementById('ico-status')
+      const nactiBtn = document.getElementById('nacist-ares')
 
-    <script>
-      document.addEventListener('DOMContentLoaded', function () {
-        const icoInput = document.getElementById('ico-kontrola')
-        const status = document.getElementById('ico-status')
-        const nactiBtn = document.getElementById('nacist-ares')
-      
-        // ✅ Automatická kontrola existence IČO v systému
-        icoInput.addEventListener('input', function () {
-          const ico = this.value
-      
-          if (ico.length === 8 && !isNaN(ico)) {
-            fetch(`/check-ico/?ico=${ico}`)
-              .then((response) => response.json())
-              .then((data) => {
-                if (data.exists) {
-                  status.textContent = '❌ Partner s tímto IČO již v systému existuje.'
-                  status.classList.remove('text-success')
-                  status.classList.add('text-danger')
-                } else {
-                  status.textContent = '✅ Partner s tímto IČO ještě není v systému.'
-                  status.classList.remove('text-danger')
-                  status.classList.add('text-success')
-                }
-              })
-          } else {
-            status.textContent = ''
-          }
-        })
-      
-        // ✅ Načíst údaje z ARES
-        nactiBtn.addEventListener('click', function () {
-          const ico = icoInput.value
-      
-          if (ico.length === 8 && !isNaN(ico)) {
-            fetch(`/ares-lookup/?ico=${ico}`)
-              .then((response) => response.json())
-              .then((data) => {
-                if (data.error) {
-                  alert('Chyba: ' + data.error)
-                } else {
-                  // Předvyplníme pole z ARESu – přizpůsobte podle názvů polí ve formuláři
-                  document.getElementById('id_jmeno').value = data.jmeno || ''
-                  document.getElementById('id_adresa').value = data.adresa || ''
-                  document.getElementById('id_mesto').value = data.mesto || ''
-                  status.textContent = '✅ Údaje byly načteny z ARES.'
-                  status.classList.remove('text-danger')
-                  status.classList.add('text-success')
-                }
-              })
-              .catch((err) => {
-                alert('Došlo k chybě při načítání z ARES.')
-                console.error(err)
-              })
-          } else {
-            alert('Zadejte platné IČO (8 číslic).')
-          }
-        })
+      icoInput.addEventListener('input', function () {
+        const ico = this.value
+        if (ico.length === 8 && !isNaN(ico)) {
+          fetch(`/check-ico/?ico=${ico}`)
+            .then((response) => response.json())
+            .then((data) => {
+              if (data.exists) {
+                status.textContent = '❌ Partner s tímto IČO již v systému existuje.'
+                status.classList.remove('text-success')
+                status.classList.add('text-danger')
+              } else {
+                status.textContent = '✅ Partner s tímto IČO ještě není v systému.'
+                status.classList.remove('text-danger')
+                status.classList.add('text-success')
+              }
+            })
+        } else {
+          status.textContent = ''
+        }
       })
-    </script>
-  </body>
+
+      nactiBtn.addEventListener('click', function () {
+        const ico = icoInput.value
+        if (ico.length === 8 && !isNaN(ico)) {
+          fetch(`/ares-lookup/?ico=${ico}`)
+            .then((response) => response.json())
+            .then((data) => {
+              if (data.error) {
+                alert('Chyba: ' + data.error)
+              } else {
+                document.getElementById('id_jmeno').value = data.jmeno || ''
+                document.getElementById('id_adresa').value = data.adresa || ''
+                document.getElementById('id_mesto').value = data.mesto || ''
+                status.textContent = '✅ Údaje byly načteny z ARES.'
+                status.classList.remove('text-danger')
+                status.classList.add('text-success')
+              }
+            })
+            .catch((err) => {
+              alert('Došlo k chybě při načítání z ARES.')
+              console.error(err)
+            })
+        } else {
+          alert('Zadejte platné IČO (8 číslic).')
+        }
+      })
+    })
+  </script>
+
+</body>
 </html>

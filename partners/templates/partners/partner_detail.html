@@ -28,6 +28,19 @@
                     <tr><th>Web</th><td><a href="{{ partner.web }}" target="_blank">{{ partner.web }}</a></td></tr>
                     <tr><th>Instagram</th><td><a href="{{ partner.instagram }}" target="_blank">Instagram</a></td></tr>
                     <tr><th>Facebook</th><td><a href="{{ partner.facebook }}" target="_blank">Facebook</a></td></tr>
+                    <tr><th>Hlavní sekce</th><td>{{ partner.sekce.nazev }}</td></tr>
+                    <tr>
+                        <th>Doplňkové sekce</th>
+                        <td>
+                            {% if partner.sekce_sekundarni.all %}
+                                {% for s in partner.sekce_sekundarni.all %}
+                                    {{ s.nazev }}{% if not forloop.last %}, {% endif %}
+                                {% endfor %}
+                            {% else %}
+                                <span class="text-muted">Žádné</span>
+                            {% endif %}
+                        </td>
+                    </tr>
                 </tbody>
             </table>
 

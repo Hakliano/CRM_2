@@ -73,8 +73,17 @@
                 <td>{{ partner.kontaktovan|yesno:"Ano,Ne" }}</td>
                 <td>{{ partner.vysledek_kontaktu }}</td>
                 <td>{{ partner.ICO }}</td>
-                <td>{{ partner.sekce.nazev }}</td>
-                <td><a href="{% url 'partner_detail' partner.pk %}" class="btn btn-info btn-sm">Detail</a></td>
+                <td>
+                    {{ partner.sekce.nazev }}
+                    {% if partner.sekce_sekundarni.all %}
+                        <br>
+                        <small class="text-muted">( 
+                            {% for s in partner.sekce_sekundarni.all %}
+                                {{ s.nazev }}{% if not forloop.last %}, {% endif %}
+                            {% endfor %}
+                        )</small>
+                    {% endif %}
+                </td>                <td><a href="{% url 'partner_detail' partner.pk %}" class="btn btn-info btn-sm">Detail</a></td>
                 <td><a href="{% url 'editovat_partnera' partner.pk %}" class="btn btn-warning btn-sm">Editovat</a></td>
 
             </tr>

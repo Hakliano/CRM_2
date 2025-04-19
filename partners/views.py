@@ -51,7 +51,7 @@ def filtrovat_partnery(request):
         if data['cast_obce']:
             partneri = partneri.filter(cast_obce__icontains=data['cast_obce'])
         if data['sekce']:
-            partneri = partneri.filter(sekce=data['sekce'])
+                partneri = partneri.filter(sekce_sekundarni=data['sekce'])
         if data['oslovovaci_poradi'] is not None:
             partneri = partneri.filter(oslovovaci_poradi=data['oslovovaci_poradi'])
         if data['created_by']:
@@ -123,7 +123,7 @@ def mapa_partneru(request):
         if form.cleaned_data['cast_obce']:
             partneri = partneri.filter(cast_obce__icontains=form.cleaned_data['cast_obce'])
         if form.cleaned_data['sekce']:
-            partneri = partneri.filter(sekce=form.cleaned_data['sekce'])
+            partneri = partneri.filter(sekce_sekundarni=form.cleaned_data['sekce'])
         if form.cleaned_data['oslovovaci_poradi']:
             partneri = partneri.filter(oslovovaci_poradi=form.cleaned_data['oslovovaci_poradi'])
         if form.cleaned_data['created_by']:
