@@ -105,7 +105,7 @@ def editovat_partnera(request, pk):
             partner.longitude = str(partner.longitude).rstrip("0").rstrip(".")
         if partner.latitude:
             partner.latitude = str(partner.latitude).rstrip("0").rstrip(".")
-            
+
         form = PartnerForm(instance=partner)
 
     return render(request, "partners/editovat_partnera.html", {"form": form})
