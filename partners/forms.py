@@ -10,8 +10,9 @@ class PartnerForm(forms.ModelForm):
         queryset=Sekce.objects.none(),
         widget=forms.CheckboxSelectMultiple(),
         required=False,
-        label="Doplňkové sekce" 
-    )  
+        label="Doplňkové sekce",
+    )
+
     class Meta:
         model = Partner
         fields = "__all__"
@@ -36,7 +37,6 @@ class PartnerForm(forms.ModelForm):
                 }
             ),
         }
-      
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -46,16 +46,14 @@ class PartnerForm(forms.ModelForm):
         self.fields["sekce_sekundarni"].label = "Doplňkové sekce"
         self.fields["sekce_sekundarni"].queryset = Sekce.objects.all()
 
-
     def clean_longitude(self):
         value = self.cleaned_data["longitude"]
-        value = Decimal(str(value))  # konverze na Decimal
+        value = Decimal(str(value))
         return value.quantize(Decimal("0.00000001"), rounding=ROUND_DOWN)
-
 
     def clean_latitude(self):
         value = self.cleaned_data["latitude"]
-        value = Decimal(str(value))  # konverze na Decimal
+        value = Decimal(str(value))
         return value.quantize(Decimal("0.00000001"), rounding=ROUND_DOWN)
 
 
@@ -84,8 +82,8 @@ class PartnerFilterForm(forms.Form):
     vysledek_kontaktu = forms.CharField(required=False, label="Výsledek kontaktu")
 
     key_account_manager = forms.ModelChoiceField(
-    queryset=User.objects.all(),
-    required=False,
-    label="Key Account Manager",
-    empty_label="--- Nerozhoduje ---",
-)
+        queryset=User.objects.all(),
+        required=False,
+        label="Key Account Manager",
+        empty_label="--- Nerozhoduje ---",
+    )
