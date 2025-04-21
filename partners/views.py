@@ -21,6 +21,7 @@ def pridat_partnera(request):
             partner = form.save(commit=False)
             partner.created_by = request.user
             partner.save()
+            form.save_m2m()
             messages.success(request, f"Byl úspěšně zadán partner {partner.jmeno}.")
             return redirect("novy_partner")
     else:
@@ -43,11 +44,9 @@ def filtrovat_partnery(request):
     form = PartnerFilterForm(request.GET or None)
     partneri = Partner.objects.all()
     sekce_list = Sekce.objects.all()
-    # Subquery pro poslední kontakt
-    last_contact = KontaktHistorie.objects.filter(partner=OuterRef("pk")).order_by(
-        "-datum"
-    )
 
+    # Subquery pro poslední kontakt
+    last_contact = KontaktHistorie.objects.filter(partner=OuterRef("pk")).order_by("-datum")
     partneri = partneri.annotate(
         posledni_datum=Subquery(last_contact.values("datum")[:1]),
         posledni_zpusob=Subquery(last_contact.values("zpusob")[:1]),
@@ -70,21 +69,27 @@ def filtrovat_partnery(request):
             partneri = partneri.filter(oslovovaci_poradi=data["oslovovaci_poradi"])
         if data["created_by"]:
             partneri = partneri.filter(created_by=data["created_by"])
-        if data["kontaktovan"] in ["True", "False"]:  # Opraveno!
+        if data["kontaktovan"] in ["True", "False"]:
             partneri = partneri.filter(kontaktovan=(data["kontaktovan"] == "True"))
         if data["vysledek_kontaktu"]:
-            partneri = partneri.filter(
-                vysledek_kontaktu__icontains=data["vysledek_kontaktu"]
-            )
+            partneri = partneri.filter(vysledek_kontaktu__icontains=data["vysledek_kontaktu"])
         if data["key_account_manager"]:
             partneri = partneri.filter(key_account_manager=data["key_account_manager"])
+
+    # 🔥 Stránkování mimo if – musí fungovat vždy
+    paginator = Paginator(partneri, 25)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
 
     return render(
         request,
         "partners/filtr_partneru.html",
-        {"form": form, "partneri": partneri, "sekce_list": sekce_list},
+        {
+            "form": form,
+            "partneri": page_obj,
+            "sekce_list": sekce_list,
+        },
     )
-
 
 def home(request):
     uzivatele = User.objects.annotate(pocet_partneru=Count("partner"))
@@ -98,6 +103,7 @@ def editovat_partnera(request, pk):
         form = PartnerForm(request.POST, instance=partner)
         if form.is_valid():
             form.save()
+            form.save_m2m()  # ← Tady
             messages.success(request, f"Partner {partner.jmeno} byl aktualizován.")
             return redirect("filtr_partneru")
     else:
@@ -135,8 +141,9 @@ def partneri_json(request):
                 if partner.oslovovaci_poradi == 3
                 else "red"
             ),  # 🌈 Barevná logika
-        }
-        for partner in partneri
+
+         }
+    for partner in partneri    
     ]
 
     return JsonResponse(data, safe=False)
@@ -294,3 +301,4 @@ def pridat_kontakt(request, pk):
 
         messages.success(request, "Záznam o kontaktu byl uložen.")
     return redirect("partner_detail", pk=pk)
+

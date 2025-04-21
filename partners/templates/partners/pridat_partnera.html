@@ -84,8 +84,13 @@
 
   <h1>Přidání nového partnera</h1>
 
-  <div class="mb-4">
-    <label class="form-label">Nabídka:</label>
+ 
+
+  <div class="form-section">
+    <form method="POST">
+      {% csrf_token %}
+    <div class="mb-4">
+      <label class="form-label">Nabídka:</label>
     <div class="d-flex flex-wrap">
       {{ form.sekce_sekundarni }}
     </div>
@@ -93,10 +98,6 @@
       <div class="text-danger">{{ form.sekce_sekundarni.errors }}</div>
     {% endif %}
   </div>
-
-  <div class="form-section">
-    <form method="POST">
-      {% csrf_token %}
       <div class="row">
         {% for field in form %}
           {% if field.name != "sekce_sekundarni" %}
