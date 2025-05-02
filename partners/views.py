@@ -11,6 +11,87 @@ from .models import Partner, Sekce, KontaktHistorie
 from .forms import PartnerForm, PartnerFilterForm
 from django.views.decorators.http import require_GET
 from django.db.models import OuterRef, Subquery
+from decimal import Decimal, InvalidOperation
+from .forms import JSONUploadForm
+
+
+def import_partners_view(request):
+    if request.method == "POST":
+        form = JSONUploadForm(request.POST, request.FILES)
+        if form.is_valid():
+            json_file = form.cleaned_data["json_file"]
+            try:
+                data = json.load(json_file)
+                print(f"🔢 Celkem záznamů v souboru: {len(data)}")
+
+                imported, skipped, errors = 0, 0, []
+
+                for entry in data:
+                    ico_raw = entry.get("ICO", "").strip()
+
+                    if len(ico_raw) < 8:
+                        errors.append(f"{entry.get('Nazev', 'Neznámý')}: Neplatné ICO (méně než 8 znaků)")
+                        continue
+
+                    ico = ico_raw[:8]
+
+                    if Partner.objects.filter(ICO=ico).exists():
+                        skipped += 1
+                        continue
+
+
+                    try:
+                        jmeno = entry.get("Nazev", "").strip()
+                        adresa = entry.get("Adresa", "").strip()
+                        web = entry.get("Web", "") or None
+                        telefon = (
+                            entry.get("Telefon", "")
+                            .replace(",", "")
+                            .replace(" ", "")
+                            .strip()[:20]
+                        )
+                        email = entry.get("Email", "") or None
+                        popis = entry.get("Popis", "")
+                        lat_raw = entry.get("latitude", "").strip()
+                        lon_raw = entry.get("longitude", "").strip()
+                        latitude = Decimal(lat_raw)
+                        longitude = Decimal(lon_raw)
+
+                        Partner.objects.create(
+                            jmeno=jmeno,
+                            jednatel=jmeno,
+                            email=email,
+                            telefon=telefon,
+                            adresa=adresa,
+                            latitude=latitude,
+                            longitude=longitude,
+                            web=web,
+                            description=popis,
+                            created_by_id=1,
+                            key_account_manager_id=1,
+                            ICO=ico,
+                        )
+                        imported += 1
+                    except (InvalidOperation, Exception) as e:
+                        errors.append(f"{jmeno}: {str(e)}")
+                        continue
+
+                messages.success(
+                    request,
+                    f"✅ Importováno: {imported}, přeskočeno: {skipped}, chyb: {len(errors)}",
+                )
+                if errors:
+                    messages.warning(request, "❌ Některé záznamy měly chybu:")
+                    for err in errors:
+                        messages.warning(request, err)
+
+                return redirect("import-partners")
+            except Exception as e:
+                messages.error(request, f"❌ Chyba při zpracování souboru: {str(e)}")
+    else:
+        form = JSONUploadForm()
+
+    return render(request, "partners/import_partners.html", {"form": form})
 
 
 @login_required
@@ -46,7 +127,9 @@ def filtrovat_partnery(request):
     sekce_list = Sekce.objects.all()
 
     # Subquery pro poslední kontakt
-    last_contact = KontaktHistorie.objects.filter(partner=OuterRef("pk")).order_by("-datum")
+    last_contact = KontaktHistorie.objects.filter(partner=OuterRef("pk")).order_by(
+        "-datum"
+    )
     partneri = partneri.annotate(
         posledni_datum=Subquery(last_contact.values("datum")[:1]),
         posledni_zpusob=Subquery(last_contact.values("zpusob")[:1]),
@@ -72,7 +155,9 @@ def filtrovat_partnery(request):
         if data["kontaktovan"] in ["True", "False"]:
             partneri = partneri.filter(kontaktovan=(data["kontaktovan"] == "True"))
         if data["vysledek_kontaktu"]:
-            partneri = partneri.filter(vysledek_kontaktu__icontains=data["vysledek_kontaktu"])
+            partneri = partneri.filter(
+                vysledek_kontaktu__icontains=data["vysledek_kontaktu"]
+            )
         if data["key_account_manager"]:
             partneri = partneri.filter(key_account_manager=data["key_account_manager"])
 
@@ -90,6 +175,7 @@ def filtrovat_partnery(request):
             "sekce_list": sekce_list,
         },
     )
+
 
 def home(request):
     uzivatele = User.objects.annotate(pocet_partneru=Count("partner"))
@@ -141,9 +227,8 @@ def partneri_json(request):
                 if partner.oslovovaci_poradi == 3
                 else "red"
             ),  # 🌈 Barevná logika
-
-         }
-    for partner in partneri    
+        }
+        for partner in partneri
     ]
 
     return JsonResponse(data, safe=False)
@@ -301,4 +386,3 @@ def pridat_kontakt(request, pk):
 
         messages.success(request, "Záznam o kontaktu byl uložen.")
     return redirect("partner_detail", pk=pk)
-

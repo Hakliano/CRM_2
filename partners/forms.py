@@ -8,6 +8,14 @@ from django.db.models import Q
 
 
 
+class JSONUploadForm(forms.Form):
+    json_file = forms.FileField(
+        label="Vyber JSON soubor",
+        allow_empty_file=False,
+        widget=forms.ClearableFileInput(attrs={"accept": ".json"}),
+    )
+
+
 class PartnerForm(forms.ModelForm):
     sekce_sekundarni = forms.ModelMultipleChoiceField(
         queryset=Sekce.objects.none(),
@@ -102,24 +110,34 @@ class PartnerFilterForm(forms.Form):
             queryset = queryset.filter(mesto__icontains=self.cleaned_data["mesto"])
 
         if self.cleaned_data.get("cast_obce"):
-            queryset = queryset.filter(cast_obce__icontains=self.cleaned_data["cast_obce"])
+            queryset = queryset.filter(
+                cast_obce__icontains=self.cleaned_data["cast_obce"]
+            )
 
         if self.cleaned_data.get("sekce"):
             queryset = queryset.filter(sekce=self.cleaned_data["sekce"])
 
         if self.cleaned_data.get("oslovovaci_poradi") is not None:
-            queryset = queryset.filter(oslovovaci_poradi=self.cleaned_data["oslovovaci_poradi"])
+            queryset = queryset.filter(
+                oslovovaci_poradi=self.cleaned_data["oslovovaci_poradi"]
+            )
 
         if self.cleaned_data.get("created_by"):
             queryset = queryset.filter(created_by=self.cleaned_data["created_by"])
 
         if self.cleaned_data.get("kontaktovan") in ["True", "False"]:
-            queryset = queryset.filter(kontaktovan=self.cleaned_data["kontaktovan"] == "True")
+            queryset = queryset.filter(
+                kontaktovan=self.cleaned_data["kontaktovan"] == "True"
+            )
 
         if self.cleaned_data.get("vysledek_kontaktu"):
-            queryset = queryset.filter(vysledek_kontaktu__icontains=self.cleaned_data["vysledek_kontaktu"])
+            queryset = queryset.filter(
+                vysledek_kontaktu__icontains=self.cleaned_data["vysledek_kontaktu"]
+            )
 
         if self.cleaned_data.get("key_account_manager"):
-            queryset = queryset.filter(key_account_manager=self.cleaned_data["key_account_manager"])
+            queryset = queryset.filter(
+                key_account_manager=self.cleaned_data["key_account_manager"]
+            )
 
         return queryset
