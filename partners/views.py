@@ -15,6 +15,14 @@ from decimal import Decimal, InvalidOperation
 from .forms import JSONUploadForm
 
 
+from decimal import Decimal, InvalidOperation
+from django.contrib import messages
+from django.shortcuts import render, redirect
+from django.utils.safestring import mark_safe
+from .forms import JSONUploadForm
+from .models import Partner
+
+
 def import_partners_view(request):
     if request.method == "POST":
         form = JSONUploadForm(request.POST, request.FILES)
@@ -25,20 +33,23 @@ def import_partners_view(request):
                 print(f"🔢 Celkem záznamů v souboru: {len(data)}")
 
                 imported, skipped, errors = 0, 0, []
+                skipped_entries = []
 
                 for entry in data:
                     ico_raw = entry.get("ICO", "").strip()
 
                     if len(ico_raw) < 8:
-                        errors.append(f"{entry.get('Nazev', 'Neznámý')}: Neplatné ICO (méně než 8 znaků)")
+                        errors.append(
+                            f"{entry.get('Nazev', 'Neznámý')}: Neplatné ICO (méně než 8 znaků)"
+                        )
                         continue
 
                     ico = ico_raw[:8]
 
                     if Partner.objects.filter(ICO=ico).exists():
                         skipped += 1
+                        skipped_entries.append(entry.get("Nazev", "Neznámý"))
                         continue
-
 
                     try:
                         jmeno = entry.get("Nazev", "").strip()
@@ -57,7 +68,7 @@ def import_partners_view(request):
                         latitude = Decimal(lat_raw)
                         longitude = Decimal(lon_raw)
 
-                        Partner.objects.create(
+                        partner = Partner.objects.create(
                             jmeno=jmeno,
                             jednatel=jmeno,
                             email=email,
@@ -72,6 +83,12 @@ def import_partners_view(request):
                             ICO=ico,
                         )
                         imported += 1
+                        messages.success(
+                            request,
+                            mark_safe(
+                                f"✔️ Uložen partner: <a href='/admin/partners/partner/{partner.id}/change/' target='_blank'>{jmeno}</a>"
+                            ),
+                        )
                     except (InvalidOperation, Exception) as e:
                         errors.append(f"{jmeno}: {str(e)}")
                         continue
@@ -80,6 +97,12 @@ def import_partners_view(request):
                     request,
                     f"✅ Importováno: {imported}, přeskočeno: {skipped}, chyb: {len(errors)}",
                 )
+
+                if skipped_entries:
+                    messages.info(request, f"🔁 Přeskočeno {skipped} duplicit:")
+                    for name in skipped_entries:
+                        messages.info(request, f"• {name}")
+
                 if errors:
                     messages.warning(request, "❌ Některé záznamy měly chybu:")
                     for err in errors:
