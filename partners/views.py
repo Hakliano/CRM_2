@@ -125,7 +125,7 @@ def pridat_partnera(request):
             partner = form.save(commit=False)
             partner.created_by = request.user
             partner.save()
-            # form.save_m2m()
+            
             messages.success(request, f"Byl úspěšně zadán partner {partner.jmeno}.")
             return redirect("novy_partner")
     else:
@@ -212,7 +212,7 @@ def editovat_partnera(request, pk):
         form = PartnerForm(request.POST, instance=partner)
         if form.is_valid():
             form.save()
-            # form.save_m2m()  # ← Tady
+            
             messages.success(request, f"Partner {partner.jmeno} byl aktualizován.")
             return redirect("filtr_partneru")
     else:
