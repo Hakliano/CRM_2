@@ -1,0 +1,175 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="cs">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Správa partnerů</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <style>
+        .table td input,
+        .table td select {
+            width: 100%;
+        }
+
+        .d-flex input[type="checkbox"] {
+            margin-left: auto;
+        }
+
+        .sekce-sloupec {
+    min-width: 220px;
+    max-width: 260px;
+    white-space: nowrap;
+  }
+
+  .sekce-sloupec label {
+    flex-grow: 1;
+    margin-right: 0.5rem;
+  }
+
+  .sekce-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+  }
+    </style>
+  </head>
+  <body>
+    {% include 'partners/hlavicka.html' %}
+
+    <div class="container py-4">
+      <h1 class="mb-4">Správa partnerů</h1>
+
+
+
+            <!-- Stránkování -->
+            <nav>
+                <ul class="pagination justify-content-center">
+              
+                  {% if page_obj.has_previous %}
+                    <li class="page-item">
+                      <a class="page-link" href="?page={{ page_obj.previous_page_number }}">«</a>
+                    </li>
+                  {% endif %}
+              
+                  {% for i in page_obj.paginator.page_range %}
+                    {% if i >= page_obj.number|add:'-5' and i <= page_obj.number|add:'5' %}
+                      <li class="page-item {% if page_obj.number == i %}active{% endif %}">
+                        <a class="page-link" href="?page={{ i }}">{{ i }}</a>
+                      </li>
+                    {% endif %}
+                  {% endfor %}
+              
+                  {% if page_obj.has_next %}
+                    <li class="page-item">
+                      <a class="page-link" href="?page={{ page_obj.next_page_number }}">»</a>
+                    </li>
+                  {% endif %}
+                </ul>
+              
+                <!-- Rychlý skok na libovolnou stránku -->
+                <form method="get" class="d-flex justify-content-center align-items-center mt-2">
+                  <label for="page_jump" class="me-2 mb-0">Přejít na stránku:</label>
+                  <input type="number" id="page_jump" name="page" min="1" max="{{ page_obj.paginator.num_pages }}" class="form-control me-2" style="width: 100px;" required>
+                  <button type="submit" class="btn btn-outline-primary btn-sm">Přejít</button>
+                </form>
+              </nav>
+
+
+              
+      <form method="post">
+        {% csrf_token %}
+        <table class="table table-bordered align-middle">
+          <thead class="table-light">
+            <tr>
+              <th>Jméno partnera</th>
+              <th>Popis</th>
+              <th>Adresa</th>
+              <th>Město</th>
+              <th>Část obce</th>
+              <th>Account Manager</th>
+              <th class="sekce-sloupec">Sekce sekundární</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for partner in page_obj %}
+            <tr>
+                <td>{{ partner.jmeno }}</td>
+                <td>{{ partner.description }}</td>
+                <td>{{ partner.adresa }}</td>
+                <td>
+                  <input type="text" name="mesto_{{ partner.id }}" value="{{ partner.mesto|default_if_none:'' }}" class="form-control">
+                </td>
+                <td>
+                  <input type="text" name="cast_{{ partner.id }}" value="{{ partner.cast_obce|default_if_none:'' }}" class="form-control">
+                </td>
+                <td>
+                  <select name="k_manager_{{ partner.id }}" class="form-select">
+                    <option value="">-- Vybrat --</option>
+                    {% for user in users %}
+                      <option value="{{ user.id }}" {% if partner.key_account_manager == user %}selected{% endif %}>{{ user.username }}</option>
+                    {% endfor %}
+                  </select>
+                </td>
+                <td class="sekce-sloupec">
+                    <div class="d-flex flex-column">
+                      {% for sekce in vsechny_sekce %}
+                        <div class="sekce-item">
+                          <label for="sekce_{{ partner.id }}_{{ sekce.id }}">{{ sekce.nazev }}</label>
+                          <input
+                            type="checkbox"
+                            class="form-check-input"
+                            name="sekce_{{ partner.id }}[]"
+                            value="{{ sekce.id }}"
+                            id="sekce_{{ partner.id }}_{{ sekce.id }}"
+                            {% if sekce in partner.sekce_sekundarni.all %}checked{% endif %}>
+                        </div>
+                      {% endfor %}
+                    </div>
+                  </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+        <div class="d-flex justify-content-end mt-3">
+            <button type="submit" name="save_all" class="btn btn-primary">💾 Uložit změny všech 25 partnerů</button>
+          </div>
+          
+      </form>
+
+      <!-- Stránkování -->
+      <nav>
+        <ul class="pagination justify-content-center">
+      
+          {% if page_obj.has_previous %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ page_obj.previous_page_number }}">«</a>
+            </li>
+          {% endif %}
+      
+          {% for i in page_obj.paginator.page_range %}
+            {% if i >= page_obj.number|add:'-5' and i <= page_obj.number|add:'5' %}
+              <li class="page-item {% if page_obj.number == i %}active{% endif %}">
+                <a class="page-link" href="?page={{ i }}">{{ i }}</a>
+              </li>
+            {% endif %}
+          {% endfor %}
+      
+          {% if page_obj.has_next %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ page_obj.next_page_number }}">»</a>
+            </li>
+          {% endif %}
+        </ul>
+      
+        <!-- Rychlý skok na libovolnou stránku -->
+        <form method="get" class="d-flex justify-content-center align-items-center mt-2">
+          <label for="page_jump" class="me-2 mb-0">Přejít na stránku:</label>
+          <input type="number" id="page_jump" name="page" min="1" max="{{ page_obj.paginator.num_pages }}" class="form-control me-2" style="width: 100px;" required>
+          <button type="submit" class="btn btn-outline-primary btn-sm">Přejít</button>
+        </form>
+      </nav>
+    </div>
+  </body>
+</html>

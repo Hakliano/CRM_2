@@ -20,4 +20,5 @@ urlpatterns = [
     path('check-ico/', views.check_ico, name='check_ico'),
     path("partner/<int:pk>/kontakt/", views.pridat_kontakt, name="pridat_kontakt"),
     path("import/", views.import_partners_view, name="import-partners"),
+    path("upravaPartneru/", views.upravaPartneru, name="upravaPartneru"),
 ]

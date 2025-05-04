@@ -409,3 +409,42 @@ def pridat_kontakt(request, pk):
 
         messages.success(request, "Záznam o kontaktu byl uložen.")
     return redirect("partner_detail", pk=pk)
+
+
+def upravaPartneru(request):
+    partners = Partner.objects.all().order_by("jmeno")
+    paginator = Paginator(partners, 25)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
+    if request.method == "POST":
+        for partner in page_obj:
+            partner_id = str(partner.id)
+            partner.mesto = request.POST.get(f"mesto_{partner_id}", "")
+            partner.cast_obce = request.POST.get(f"cast_{partner_id}", "")
+
+            kam_id = request.POST.get(f"k_manager_{partner_id}")
+            partner.key_account_manager = (
+                User.objects.get(id=kam_id) if kam_id else None
+            )
+
+            sekce_ids = request.POST.getlist(f"sekce_{partner_id}[]")
+            nove_sekce = Sekce.objects.filter(id__in=sekce_ids)
+
+            partner.save()
+            partner.sekce_sekundarni.set(nove_sekce)
+
+        return redirect(request.path_info)
+
+    vsechny_sekce = Sekce.objects.all()
+    users = User.objects.all()
+
+    return render(
+        request,
+        "partners/upravaPartneru.html",
+        {
+            "page_obj": page_obj,
+            "vsechny_sekce": vsechny_sekce,
+            "users": users,
+        },
+    )
