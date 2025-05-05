@@ -79,7 +79,6 @@ def import_partners_view(request):
                             web=web,
                             description=popis,
                             created_by_id=1,
-                            key_account_manager_id=1,
                             ICO=ico,
                         )
                         imported += 1

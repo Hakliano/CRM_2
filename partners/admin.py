@@ -6,7 +6,7 @@ from .forms import PartnerForm
 @admin.register(Partner)
 class PartnerAdmin(admin.ModelAdmin):
     form = PartnerForm
-    list_display = ("jmeno", "mesto", "sekce")
+    list_display = ("jmeno", "mesto", "sekce", "created_by")
     search_fields = ("jmeno", "mesto", "sekce__nazev")
 
     def get_readonly_fields(self, request, obj=None):
