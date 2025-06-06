@@ -67,6 +67,8 @@ def import_partners_view(request):
                         lon_raw = entry.get("longitude", "").strip()
                         latitude = Decimal(lat_raw)
                         longitude = Decimal(lon_raw)
+                        mesto = entry.get("mesto", "").strip()
+                        cast_obce = entry.get("cast_obce", "").strip()
 
                         partner = Partner.objects.create(
                             jmeno=jmeno,
@@ -80,6 +82,8 @@ def import_partners_view(request):
                             description=popis,
                             created_by_id=1,
                             ICO=ico,
+                            mesto=mesto,
+                            cast_obce=cast_obce,
                         )
                         imported += 1
                         messages.success(
