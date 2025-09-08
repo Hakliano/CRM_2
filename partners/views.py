@@ -9,20 +9,13 @@ from django.db.models import Count, Q, OuterRef, Subquery, F, OrderBy
 
 from django.contrib import messages
 from .models import Partner, Sekce, KontaktHistorie
-from .forms import PartnerForm, PartnerFilterForm
+from .forms import PartnerForm, PartnerFilterForm, JSONUploadForm
 from django.views.decorators.http import require_GET
 from decimal import Decimal, InvalidOperation
-from .forms import JSONUploadForm
-
-
-from decimal import Decimal, InvalidOperation
-from django.contrib import messages
-from django.shortcuts import render, redirect
+from math import ceil
 from django.utils.safestring import mark_safe
-from .forms import JSONUploadForm
-from .models import Partner
 
-
+@login_required
 def import_partners_view(request):
     if request.method == "POST":
         form = JSONUploadForm(request.POST, request.FILES)
@@ -221,9 +214,95 @@ def filtrovat_partnery(request):
 
 
 
+
+
 def home(request):
-    uzivatele = User.objects.annotate(pocet_partneru=Count("partner"))
-    return render(request, "partners/home.html", {"uzivatele": uzivatele})
+    statuses = [code for code, _ in KontaktHistorie.VYSLEDKY_KONTAKTU]
+    labels = dict(KontaktHistorie.VYSLEDKY_KONTAKTU)
+
+    last_contact = KontaktHistorie.objects.filter(
+        partner=OuterRef("pk")
+    ).order_by("-datum", "-id")
+
+    # anotujeme poslední výsledek a spočteme
+    qs = Partner.objects.annotate(
+        last_vysledek=Subquery(last_contact.values("vysledek")[:1])
+    )
+
+    raw = qs.values("last_vysledek").annotate(cnt=Count("id"))
+
+    counts = {code: 0 for code in statuses}
+    no_contact = 0
+    for r in raw:
+        key = r["last_vysledek"]
+        if key is None:
+            no_contact = r["cnt"]
+        elif key in counts:
+            counts[key] = r["cnt"]
+
+    total = qs.count()
+    rows = [(code, labels[code], counts[code]) for code in statuses]
+
+   
+    statuses = [code for code, _ in KontaktHistorie.VYSLEDKY_KONTAKTU]
+    labels = dict(KontaktHistorie.VYSLEDKY_KONTAKTU)
+
+    last_contact = KontaktHistorie.objects.filter(
+        partner=OuterRef("pk")
+    ).order_by("-datum", "-id")
+
+    qs = Partner.objects.annotate(
+        last_vysledek=Subquery(last_contact.values("vysledek")[:1])
+    )
+    raw = qs.values("last_vysledek").annotate(cnt=Count("id"))
+
+    counts = {code: 0 for code in statuses}
+    no_contact = 0
+    for r in raw:
+        key = r["last_vysledek"]
+        if key is None:
+            no_contact = r["cnt"]
+        elif key in counts:
+            counts[key] = r["cnt"]
+
+    total = qs.count()
+    rows = [(code, labels[code], counts[code]) for code in statuses]
+
+    # --- NOVÉ: procentuální „úspěšnost“ ---
+    zakladna = (
+        counts.get("nezajem", 0)
+        + counts.get("no_time", 0)
+        + counts.get("nevi", 0)
+        + counts.get("schuzka", 0)
+        + counts.get("zajem", 0)
+        + counts.get("uzavreno", 0)
+        + counts.get("predbezny", 0)
+    )
+    pozitivni = (
+        counts.get("schuzka", 0)
+        + counts.get("zajem", 0)
+        + counts.get("uzavreno", 0)
+        + counts.get("predbezny", 0)
+    )
+    if zakladna > 0:
+        pct = (pozitivni / zakladna) * 100.0
+        # zaokrouhlit NAHORU na 1 desetinné místo
+        pct_ceil_1 = ceil(pct * 10) / 10.0
+    else:
+        pct_ceil_1 = 0.0
+
+    return render(
+        request,
+        "partners/home.html",
+        {
+            "rows": rows,
+            "no_contact": no_contact,
+            "total": total,
+            "success_base": zakladna,
+            "success_pos": pozitivni,
+            "success_pct": f"{pct_ceil_1:.1f}",  # připravené k přímému zobrazení
+        },
+    )
 
 
 @login_required
@@ -291,41 +370,47 @@ def partneri_json(request):
     return JsonResponse(data, safe=False)
 
 
+
 @login_required
 def mapa_partneru(request):
     form = PartnerFilterForm(request.GET or None)
     partneri = Partner.objects.all()
 
-    if form.is_valid():
-        if form.cleaned_data["jmeno"]:
-            partneri = partneri.filter(jmeno__icontains=form.cleaned_data["jmeno"])
-        if form.cleaned_data["mesto"]:
-            partneri = partneri.filter(mesto__icontains=form.cleaned_data["mesto"])
-        if form.cleaned_data["cast_obce"]:
-            partneri = partneri.filter(
-                cast_obce__icontains=form.cleaned_data["cast_obce"]
-            )
-        if form.cleaned_data["sekce"]:
-            partneri = partneri.filter(sekce_sekundarni=form.cleaned_data["sekce"])
-        if form.cleaned_data["oslovovaci_poradi"]:
-            partneri = partneri.filter(
-                oslovovaci_poradi=form.cleaned_data["oslovovaci_poradi"]
-            )
-        if form.cleaned_data["created_by"]:
-            partneri = partneri.filter(created_by=form.cleaned_data["created_by"])
-        if form.cleaned_data["kontaktovan"]:
-            partneri = partneri.filter(
-                kontaktovan=form.cleaned_data["kontaktovan"] == "True"
-            )
-        if form.cleaned_data["vysledek_kontaktu"]:
-            partneri = partneri.filter(
-                vysledek_kontaktu__icontains=form.cleaned_data["vysledek_kontaktu"]
-            )
-        if form.cleaned_data["key_account_manager"]:
-            partneri = partneri.filter(
-                key_account_manager=form.cleaned_data["key_account_manager"]
-            )
+    # ✅ bezpečné načtení dat i když form.is_valid() == False
+    data = form.cleaned_data if form.is_valid() else {}
 
+    # --- vaše původní filtry, jen bezpečně přes .get() ---
+    if data.get("jmeno"):
+        partneri = partneri.filter(jmeno__icontains=data["jmeno"])
+
+    if data.get("mesto"):
+        partneri = partneri.filter(mesto__icontains=data["mesto"])
+
+    if data.get("cast_obce"):
+        partneri = partneri.filter(cast_obce__icontains=data["cast_obce"])
+
+    if data.get("sekce"):
+        partneri = partneri.filter(sekce_sekundarni=data["sekce"])
+
+    if data.get("oslovovaci_poradi"):
+        partneri = partneri.filter(oslovovaci_poradi=data["oslovovaci_poradi"])
+
+    if data.get("created_by"):
+        partneri = partneri.filter(created_by=data["created_by"])
+
+    if data.get("kontaktovan") in ["True", "False"]:
+        partneri = partneri.filter(kontaktovan=(data["kontaktovan"] == "True"))
+
+    # ⚠️ kompatibilita: pokud tohle pole ve formu nemáte, .get(...) vrátí None a filtr se neaplikuje
+    if data.get("vysledek_kontaktu"):
+        partneri = partneri.filter(
+            vysledek_kontaktu__icontains=data["vysledek_kontaktu"]
+        )
+
+    if data.get("key_account_manager"):
+        partneri = partneri.filter(key_account_manager=data["key_account_manager"])
+
+    # --- výstup pro mapu (beze změny struktury) ---
     partneri_list = list(
         partneri.values(
             "id",
@@ -338,35 +423,55 @@ def mapa_partneru(request):
         )
     )
 
-    for partner in partneri_list:
-        partner_obj = partneri.get(id=partner["id"])
-        partner["latitude"] = (
-            float(partner_obj.latitude) if partner_obj.latitude else None
-        )
-        partner["longitude"] = (
-            float(partner_obj.longitude) if partner_obj.longitude else None
-        )
+    # převod Decimal -> float pro JS bez dalších DB dotazů
+    for p in partneri_list:
+        p["latitude"] = float(p["latitude"]) if p["latitude"] is not None else None
+        p["longitude"] = float(p["longitude"]) if p["longitude"] is not None else None
 
     return render(
         request,
         "partners/mapa_partneru.html",
-        {"form": form, "partneri_json": json.dumps(partneri_list, ensure_ascii=False)},
+        {
+            "form": form,
+            "partneri_json": json.dumps(partneri_list, ensure_ascii=False),
+        },
     )
+
 
 
 @login_required
 def partner_detail(request, pk):
     partner = get_object_or_404(Partner, pk=pk)
+
+    # ✅ rychlá změna oslovovacího pořadí přímo z detailu
+    if request.method == "POST" and request.POST.get("akce") == "zmena_poradi":
+        val = request.POST.get("oslovovaci_poradi")
+        try:
+            n = int(val)
+        except (TypeError, ValueError):
+            messages.error(request, "Zadejte prosím číslo 0–9.")
+            return redirect("partner_detail", pk=pk)
+
+        if n < 0 or n > 9:
+            messages.error(request, "Oslovovací pořadí musí být v rozsahu 0–9.")
+            return redirect("partner_detail", pk=pk)
+
+        if partner.oslovovaci_poradi != n:
+            partner.oslovovaci_poradi = n
+            partner.save(update_fields=["oslovovaci_poradi"])
+            messages.success(request, f"Oslovovací pořadí bylo změněno na {n}.")
+        else:
+            messages.info(request, "Oslovovací pořadí zůstalo beze změny.")
+
+        return redirect("partner_detail", pk=pk)
+
+    # standardní render detailu
     kontakty = KontaktHistorie.objects.filter(partner=partner).order_by("-datum")
     return render(
         request,
         "partners/partner_detail.html",
-        {
-            "partner": partner,
-            "kontakty": kontakty,
-        },
+        {"partner": partner, "kontakty": kontakty},
     )
-
 
 @login_required
 def smazat_partnera(request, pk):
@@ -444,7 +549,7 @@ def pridat_kontakt(request, pk):
         messages.success(request, "Záznam o kontaktu byl uložen.")
     return redirect("partner_detail", pk=pk)
 
-
+@login_required
 def upravaPartneru(request):
     partners = Partner.objects.all().order_by("jmeno")
     paginator = Paginator(partners, 25)
@@ -482,3 +587,8 @@ def upravaPartneru(request):
             "users": users,
         },
     )
+
+
+@login_required
+def callscripty(request):
+    return render(request, "partners/callscripty.html")

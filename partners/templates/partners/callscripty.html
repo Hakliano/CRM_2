@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <title>Callscripty a připravené e-maily | UlovSalon.cz</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: 'Segoe UI', sans-serif; background-color: #fdfdfd; color: #222; }
+    .wrap { max-width: 980px; margin: 40px auto; padding: 24px; background:#fff; border-radius: 14px; box-shadow: 0 0 24px rgba(0,0,0,.06); }
+    h1,h2 { color:#007c91; margin-top: 28px; }
+    .lead { color:#444; }
+    .tag { display:inline-block; padding:.25rem .6rem; border-radius:999px; background:#eaf3f4; color:#006773; font-size:.85rem; margin-right:.4rem; }
+    .card { border:1px solid #e9ecef; border-radius:12px; }
+    .card-header { background:#eaf3f4; border-bottom:1px solid #deeaec; }
+    pre { background:#f8f9fa; border:1px solid #e9ecef; padding:14px; border-radius:8px; white-space:pre-wrap; }
+    .pill { border-radius:999px; padding:.35rem .8rem; font-size:.85rem; }
+    .pill-green { background:#e8f7ee; color:#217a3a; }
+    .pill-orange { background:#fff3e6; color:#a86000; }
+    .pill-blue { background:#e6f4ff; color:#0b61a4; }
+    .small-note { color:#666; font-size:.92em; }
+    .list-check { list-style:none; padding-left:0; }
+    .list-check li::before { content:"✔️ "; }
+    .copy-btn { float:right; font-size:.8rem; }
+    @media (max-width: 600px) {
+      .wrap { padding:16px; }
+      .copy-btn { float:none; display:block; margin-top:.4rem; }
+    }
+  </style>
+</head>
+<body>
+        {% include 'partners/hlavicka.html' %}
+
+        
+  <div class="wrap">
+    <header class="mb-3">
+      <h1>📞 Callscripty & ✉️ Připravené e-maily</h1>
+      <p class="lead">Taháky pro Key Account Managery – rychle použitelné při hovoru i v následné komunikaci.</p>
+      <div class="mb-2">
+        <span class="tag">Férovost</span>
+        <span class="tag">Omezený počet v lokalitě</span>
+        <span class="tag">Recenze místo reklamy</span>
+        <span class="tag">První měsíc 1&nbsp;Kč</span>
+      </div>
+    </header>
+
+    <!-- Callscript: Prodej (ostrý) -->
+    <section id="call-prodej" class="mb-4">
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h2 class="m-0">Callscript – Ostrý prodej členství</h2>
+          <span class="pill pill-green">hot call</span>
+        </div>
+        <div class="card-body">
+          <ol>
+            <li><strong>Úvod (10–15 s):</strong> „Dobrý den, tady [Jméno] z <strong>UlovSalon.cz</strong>. Máte minutku? Neprodávám reklamu – máme férový portál, kde pořadí určuje jen počet recenzí, ne rozpočet.“</li>
+            <li><strong>Háček:</strong> „Zákazníci si vás najdou podle <em>lokality</em>, <em>konkrétní služby</em> (střih, keratin, modeláž nehtů) a <em>detailů</em> (Wi-Fi, QR platba, dog-friendly…).“</li>
+            <li><strong>Klíčová výhoda:</strong> „V každé lokalitě držíme <em>omezený počet salonů</em>, abyste byli vždy <em>na 1.–2. stránce</em> – nikdy ne na straně 42.“</li>
+            <li><strong>Cena & jednoduchost:</strong> „1. měsíc 1&nbsp;Kč, pak 150&nbsp;Kč/měs. Bez provizí, bez závazků.“</li>
+            <li><strong>Otázky (zapojení):</strong> „Jak máte teď diář – plno, nebo by se hodili noví klienti?“ „Podpořili by vás stálí klienti recenzí? To vás ve vaší lokalitě katapultuje nahoru.“</li>
+            <li><strong>Uzavření:</strong> „Můžu vás zařadit? Profil nastavíme během pár minut a spustíme, až vám to bude dávat smysl.“</li>
+          </ol>
+          <p class="small-note">Tip: Vždy se vrať k <em>omezeným místům</em> a <em>recenzím místo reklamy</em>.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Callscript: Průzkum trhu -->
+    <section id="call-pruzkum" class="mb-4">
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h2 class="m-0">Callscript – Průzkum trhu (před spuštěním)</h2>
+          <span class="pill pill-orange">research call</span>
+        </div>
+        <div class="card-body">
+          <ol>
+            <li><strong>Úvod (bez prodeje):</strong> „Dobrý den, tady [Jméno] z <strong>UlovSalon.cz</strong>. Teď nic neprodávám – děláme krátký průzkum před spuštěním (cca za půl roku). Je to na minutku?“</li>
+            <li><strong>Co a jak:</strong> „Zákazník si vybere salon podle <em>lokality</em> a služby (dámský střih, keratin, modeláž nehtů…) + filtry (Wi-Fi, QR, dog-friendly…). Pořadí určí jen recenze, ne reklama.“</li>
+            <li><strong>Otázky:</strong> „Máte diář plný, nebo by se hodili noví?“ „Podpořili by vás stálí klienti recenzí? To vás při startu posune okamžitě nahoru.“</li>
+            <li><strong>Neprodávám, jen informuji:</strong> „Teď jen sbíráme zájemce – při spuštění <em>je kontaktujeme mezi prvními</em>. Ceny na začátku budou na naprostém minimu (odhad 100–200 Kč/měs.) a konkurence nízká.“</li>
+            <li><strong>Proč omezené sloty:</strong> „V každé lokalitě a službě bude jen několik salonů → <em>garance viditelnosti</em> (1.–2. stránka). Nechceme, aby kdokoliv zapadl v davu.“</li>
+            <li><strong>Co chceme teď:</strong> „Jen souhlas, že vás máme při spuštění kontaktovat s nabídkou.“</li>
+            <li><strong>Bonus (volitelné):</strong> „Po spuštění nabídneme i web a rezervační kalendář pro beauty – levnější než nejlevnější Reservio.“</li>
+            <li><strong>Uzavření:</strong> „Mám si poznamenat, že chcete být mezi prvními, koho oslovíme?“</li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <!-- Rychlý tahák námitek -->
+    <section id="namitky" class="mb-4">
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h2 class="m-0">Tahák – rychlé odpovědi na námitky</h2>
+          <span class="pill pill-blue">quick replies</span>
+        </div>
+        <div class="card-body">
+          <ul class="list-check">
+            <li><strong>Nemám čas:</strong> „Rozumím – proto jen průzkum/stručně. Pošlu shrnutí e-mailem?“</li>
+            <li><strong>Mám plno zákazníků:</strong> „Skvělé! Jde o to, ať vás online najde i nový klient – vy si držíte náskok.“</li>
+            <li><strong>Už mám Google/Firmy.cz:</strong> „Tam rozhoduje reklama. U nás recenze a omezený počet míst → jste vždy vidět.“</li>
+            <li><strong>Portálům nevěřím:</strong> „Chápu, proto nic netlačíme. Férově řadíme podle recenzí a držíme málo míst v lokalitě.“</li>
+            <li><strong>Kolik to bude stát?</strong> „Teď nic. Po spuštění od 100–200 Kč/měs., začátek úplné minimum.“</li>
+            <li><strong>Recenze nezískám:</strong> „Stačí oslovit pár stálých – dvě tři recenze vás posunou na vršek lokality.“</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- E-maily -->
+    <section id="emails" class="mb-4">
+      <h2>✉️ Připravené e-maily</h2>
+
+      <!-- Email 1: První kontakt – přátelský -->
+      <div class="card mb-3">
+        <div class="card-header">
+          <strong>1) První kontakt – přátelský (prodej)</strong>
+          <button class="btn btn-sm btn-outline-secondary copy-btn" data-target="e1">Kopírovat</button>
+        </div>
+        <div class="card-body">
+<pre id="e1">Předmět: Můžu Vám poslat nové zákazníky?
+
+Dobrý den, paní/pane [Příjmení],
+
+jsem [Jméno] z UlovSalon.cz. Dáváme dohromady férový přehled salonů – bez placeného topování,
+pořadí určí jen recenze zákazníků. Zákazníci si Vás najdou podle lokality, konkrétní služby
+(dámský střih, keratin, modeláž nehtů) a detailů (Wi-Fi, QR platba, dog-friendly…).
+
+Proč to dává smysl:
+• v každé lokalitě je omezený počet salonů → vždy jste na 1.–2. stránce
+• první měsíc 1 Kč, poté 150 Kč/měsíc
+• žádné provize, žádné závazky
+
+Když chcete, připravím Váš profil během pár minut a spustíme ho až tehdy, kdy Vám to bude dávat smysl.
+
+Díky za chvilku času,
+[Podpis]
+</pre>
+        </div>
+      </div>
+
+      <!-- Email 2: První kontakt – průzkum trhu -->
+      <div class="card mb-3">
+        <div class="card-header">
+          <strong>2) První kontakt – průzkum trhu (před spuštěním)</strong>
+          <button class="btn btn-sm btn-outline-secondary copy-btn" data-target="e2">Kopírovat</button>
+        </div>
+        <div class="card-body">
+<pre id="e2">Předmět: Krátký dotaz (průzkum) – UlovSalon.cz
+
+Dobrý den, paní/pane [Příjmení],
+
+nic neprodávám – děláme krátký průzkum před spuštěním UlovSalon.cz (cca za půl roku).
+Chceme férový portál, kde pořadí určí jen recenze, ne reklama. Zákazníci budou hledat podle
+lokality, služby (dámský střih, keratin, modeláž nehtů) a detailů (Wi-Fi, QR, dog-friendly…).
+
+Držíme v každé lokalitě jen omezený počet míst, aby salony byly vždy vidět (1.–2. stránka).
+Na startu budou ceny na minimu (odhad 100–200 Kč/měs.) a konkurence nejnižší.
+
+Mám si poznačit, že chcete být mezi prvními, které při spuštění kontaktujeme?
+
+Děkuji a ať se daří,
+[Podpis]
+</pre>
+        </div>
+      </div>
+
+      <!-- Email 3: Shrnutí po hovoru -->
+      <div class="card mb-3">
+        <div class="card-header">
+          <strong>3) Shrnutí po hovoru (prodej i průzkum)</strong>
+          <button class="btn btn-sm btn-outline-secondary copy-btn" data-target="e3">Kopírovat</button>
+        </div>
+        <div class="card-body">
+<pre id="e3">Předmět: Shrnutí – UlovSalon.cz
+
+Dobrý den, [Jméno],
+
+děkuji za Váš čas po telefonu. Posílám shrnutí:
+• férové řazení podle recenzí (žádné placené topování)
+• hledání podle lokality, služby a detailů (Wi-Fi, QR, dog-friendly…)
+• omezený počet salonů v lokalitě → vždy na očích (1.–2. stránka)
+
+Cenově: 1. měsíc 1 Kč, poté 150 Kč/měsíc (prodej) / při spuštění od 100–200 Kč/měs. (průzkum).
+Domluveno: [zápis dalšího kroku – profil/ozveme se při spuštění].
+
+Díky a přeji hezký den,
+[Podpis]
+</pre>
+        </div>
+      </div>
+
+      <!-- Email 4: Připomínka (gentle bump) -->
+      <div class="card mb-3">
+        <div class="card-header">
+          <strong>4) Připomínka (gentle bump)</strong>
+          <button class="btn btn-sm btn-outline-secondary copy-btn" data-target="e4">Kopírovat</button>
+        </div>
+        <div class="card-body">
+<pre id="e4">Předmět: Krátká připomínka – UlovSalon.cz
+
+Dobrý den, [Jméno],
+jen připomínám informace k UlovSalon.cz. Držíme v lokalitách jen několik míst,
+aby byl každý salon opravdu vidět. Mám Vám místo poznamenat / poslat další detaily?
+
+Díky,
+[Podpis]
+</pre>
+        </div>
+      </div>
+
+      <!-- Email 5: Oznámení spuštění -->
+      <div class="card mb-3">
+        <div class="card-header">
+          <strong>5) Oznámení spuštění (pro předběžné zájemce)</strong>
+          <button class="btn btn-sm btn-outline-secondary copy-btn" data-target="e5">Kopírovat</button>
+        </div>
+        <div class="card-body">
+<pre id="e5">Předmět: Spouštíme! – Vaše místo v [Město] na UlovSalon.cz
+
+Dobrý den, [Jméno],
+děkujeme za Váš předběžný zájem. Spouštíme UlovSalon.cz a místa v [Město] pro službu [Služba]
+se rychle plní. Jak jsme slíbili – kontaktujeme Vás mezi prvními.
+
+Nabídka pro start:
+• první měsíc 1 Kč, poté 150 Kč/měsíc
+• profil s fotkami, službami, mapou a recenzemi
+• jistota viditelnosti (omezený počet míst v lokalitě)
+
+Mohu Vám připravit profil a poslat k nahlédnutí?
+
+[Podpis]
+</pre>
+        </div>
+      </div>
+
+      <!-- Email 6: Super krátká DM zpráva -->
+      <div class="card mb-3">
+        <div class="card-header">
+          <strong>6) Super-krátká DM zpráva (IG/FB)</strong>
+          <button class="btn btn-sm btn-outline-secondary copy-btn" data-target="e6">Kopírovat</button>
+        </div>
+        <div class="card-body">
+<pre id="e6">Ahoj [Jméno], tady [Jméno] z UlovSalon.cz – dáváme dohromady férový přehled salonů v [Město].
+Žádné placené topování, jen recenze + omezený počet míst → budete vždy vidět.
+Pošlu krátké info? 😊
+</pre>
+        </div>
+      </div>
+    </section>
+
+    <footer class="mt-4">
+      <p class="small-note">Tip: Před odesláním si doplňte <em>[Jméno]</em>, <em>[Město]</em>, <em>[Služba]</em> apod. a držte se tónu „lidsky, stručně, férově“.</p>
+    </footer>
+  </div>
+
+  <script>
+    // Kopírování obsahu e-mailů/calligrafií jedním klikem
+    document.querySelectorAll('.copy-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.getAttribute('data-target');
+        const el = document.getElementById(id);
+        if (!el) return;
+        navigator.clipboard.writeText(el.textContent.trim())
+          .then(() => { btn.textContent = 'Zkopírováno ✔'; setTimeout(()=>btn.textContent='Kopírovat',1500); })
+          .catch(()=> alert('Nepodařilo se zkopírovat.'));
+      });
+    });
+  </script>
+</body>
+</html>

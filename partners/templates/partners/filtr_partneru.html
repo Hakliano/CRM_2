@@ -29,7 +29,7 @@
             </div>
             <div class="col">
                 <select class="form-control" name="key_account_manager">
-                    <option value="">--- Key Account Manager ---</option>
+                    <option value="">KAM ---</option>
                     {% for uzivatel in form.fields.key_account_manager.queryset %}
                         <option value="{{ uzivatel.id }}" {% if request.GET.key_account_manager == uzivatel.id|stringformat:"s" %}selected{% endif %}>
                             {{ uzivatel.get_full_name|default:uzivatel.username }}
@@ -39,24 +39,26 @@
             </div>
             <div class="col">
                 <select class="form-control" name="sekce">
-                    <option value="">--- Vyberte sekci ---</option>
+                    <option value="">Vyberte sekci ---</option>
                     {% for sekce in sekce_list %}
                         <option value="{{ sekce.id }}" {% if request.GET.sekce == sekce.id|stringformat:"s" %}selected{% endif %}>{{ sekce.nazev }}</option>
                     {% endfor %}
                 </select>
             </div>
-            <div class="col">
-                <button type="submit" class="btn btn-primary">Vyhledat</button>
-            </div>
+            
             <div class="col">
                 <select class="form-control" name="posledni_vysledek">
-                    <option value="">--- Poslední výsledek kontaktu ---</option>
+                    <option value="">Poslední výsledek kontaktu ---</option>
                     {% for value,label in vysledky_kontaktu %}
                         <option value="{{ value }}" {% if request.GET.posledni_vysledek == value %}selected{% endif %}>
                             {{ label }}
                         </option>
                     {% endfor %}
                 </select>
+            </div>
+            <div class="col-auto d-flex align-items-end gap-2">
+                <button type="submit" class="btn btn-primary">Vyhledat</button>
+                <a href="{{ request.path }}" class="btn btn-outline-secondary">Vymazat filtry</a>
             </div>
         </div>
     </form>
@@ -68,7 +70,6 @@
                 <th>Město</th>
                 <th>Část obce</th>
                 <th>Oslovovací pořadí</th>
-                <th>Výsledek kontaktu</th>
                 <th>ICO</th>
                 <th>Key Account Manager</th>
                 <th>Poslední kontakt</th>

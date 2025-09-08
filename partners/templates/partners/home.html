@@ -16,7 +16,7 @@
     }
 
     .brochure {
-      max-width: 750px;
+      max-width: 1250px;
       margin: 40px auto;
       padding: 30px;
       background: white;
@@ -88,156 +88,133 @@
 
     {% include 'partners/hlavicka.html' %}
 
-    <div class="container">
-        <h2 class="my-4">Počet partnerů podle uživatele</h2>
-        <table class="table table-bordered">
-            <thead>
-                <tr>
-                    <th>Uživatel</th>
-                    <th>Počet partnerů</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for uzivatel in uzivatele %}
-                <tr>
-                    <td>{{ uzivatel.username }}</td>
-                    <td>{{ uzivatel.pocet_partneru }}</td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="2">Žádní uživatelé nenalezeni.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    
+   <div class="container">
+    <h2 class="my-4">Počet partnerů podle posledního výsledku kontaktu</h2>
 
-    
-
-
-    <div class="brochure">
-
-        <div style="background: #3B6366; padding: 20px; border-radius: 12px; margin-bottom: 30px; text-align: center;">
-          <h1 style="margin: 0; font-size: 1.7em; color:#FEAD00;">„Buď si dáte jedno dobré lattéčko,<br>nebo nakopnete svůj byznys!“</h1>
-          <p style="margin-top: 10px; font-size: 1.1em; color:white;">My Vás ukážeme světu. Tolik lidí hledá péči, díky níž budou krásní.<br><strong>Vy jim ji umíte dát.</strong> Ale nejdříve Vás musí najít.<br><strong>Proto jsme tu my!</strong></p>
-        </div>
-        
-    <h2>💰 Kolik Vás stojí členství?</h2>
-    <ul class="checklist">
-      <li>✅ <strong>150 Kč</strong> měsíčně</li>
-      <li>✅ nebo jen <strong>130 Kč</strong> při roční platbě</li>
-    </ul>
-
-    <h2>🔁 A co za to získáte?</h2>
-    <p class="highlight">500–1500 Kč za jednu návštěvu zákazníka</p>
-
-    <h2>📊 Ukázka návratnosti:</h2>
-    <table>
+    <table class="table table-bordered table-striped">
       <thead>
         <tr>
-          <th>Počet zákazníků měsíčně</th>
-          <th>Váš zisk*</th>
+          <th>Výsledek</th>
+          <th>Počet partnerů</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for code, label, cnt in rows %}
+          <tr>
+            <td>{{ label }}</td>
+            <td>{{ cnt }}</td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="2">Žádná data.</td></tr>
+        {% endfor %}
+        <tr class="table-secondary">
+          <td>Bez kontaktu</td>
+          <td>{{ no_contact }}</td>
+        </tr>
+        <tr class="table-light">
+          <td><strong>Celkem</strong></td>
+          <td><strong>{{ total }}</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  
+
+  <h3 class="mt-4">Procentuální úspěšnost</h3>
+    <table class="table table-bordered table-striped align-middle">
+      <thead>
+        <tr>
+          <th>Základna (7 stavů)</th>
+          <th>Pozitivní (schůzka + zájem + uzavřeno + předběžný)</th>
+          <th>Úspěšnost</th>
         </tr>
       </thead>
       <tbody>
         <tr>
-          <td>1 zákazník měsíčně</td>
-          <td>+350 až +1 350 Kč</td>
-        </tr>
-        <tr>
-          <td>2 zákazníci měsíčně</td>
-          <td>+850 až +2 850 Kč</td>
-        </tr>
-        <tr>
-          <td>3 zákazníci měsíčně</td>
-          <td>+1 350 až +4 500 Kč</td>
+          <td>{{ success_base }}</td>
+          <td>{{ success_pos }}</td>
+          <td><strong>{{ success_pct }}%</strong></td>
         </tr>
       </tbody>
     </table>
-    <p class="note">* Po odečtení nákladu na členství (150 Kč)</p>
-
-    <h2>☕ To vše za cenu jednoho latté?</h2>
-    <p><strong>Ano, a navíc – marketing platíme my.</strong><br>Vy se staráte o krásu. My o to, aby Vás lidé našli.</p>
+    <p class="text-muted small">
+      Základna = Nemá zájem + Nemá čas + Neví + Domluvená schůzka + Má zájem + Obchod uzavřen + Předběžný zájem.
+      Výsledek je zaokrouhlen <em>nahoru</em> na 1 desetinné místo.
+    </p>
   </div>
 
 
-  <hr style="margin: 40px 0; border: none; border-top: 1px solid #ddd;">
+    <div class="brochure">
+      <h1>🧑‍💼 Návod pro Key Account Managery</h1>
+      <p class="lead">Jak prodat členství na <strong>UlovSalon.cz</strong> a zdůraznit jeho největší výhody.</p>
 
-  <div class="brochure">
-    <h1>💎 ULOVSALON.CZ</h1>
-    <p><strong>Prémiová prezentace salonů krásy v ČR</strong></p>
+      <h2>🎯 1. Základní princip komunikace</h2>
+      <div class="box">
+        <ul class="checklist">
+          <li>✅ Neprodáváme reklamu, nabízíme <strong>férovou viditelnost</strong>.</li>
+          <li>✅ Zákazníci hledají podle <strong>lokality, služby a detailů</strong>.</li>
+          <li>✅ Pořadí určuje jen počet recenzí – <strong>nikdo si nemůže zaplatit topování</strong>.</li>
+          <li>✅ V každé lokalitě omezený počet salonů → <span style="color:#d9534f; font-weight:bold;">garance viditelnosti</span>.</li>
+        </ul>
+      </div>
 
-    <h2>✨ Jsme začínající, ale ambiciózní portál</h2>
-    <p>ULovSalon.cz je nový webový portál zaměřený na salony krásy, kadeřnictví, wellness a další beauty služby v celé České republice.</p>
-    <ul>
-      <li>🔹 Investujeme až <strong>500 000 Kč</strong> do marketingu v prvních měsících</li>
-      <li>🔹 Tato částka slouží pro zviditelnění právě Vašeho salonu</li>
-      <li>🔹 Vy <strong>neplatíte drahé reklamy</strong> – my to uděláme za Vás</li>
-    </ul>
+      <h2>💡 2. Klíčové výhody pro salony</h2>
+      <p class="highlight">Co je pro majitele salonu nejdůležitější slyšet:</p>
+      <ul class="checklist">
+        <li>Vlastní profil: fotky, služby, otevírací doba, mapa a recenze.</li>
+        <li>První měsíc za 1 Kč, poté jen 150 Kč měsíčně.</li>
+        <li>Žádné provize, žádné kliky, žádné skryté poplatky.</li>
+        <li>Možnost přidávat akce a slevy (např. „první návštěva -20 %“).</li>
+        <li>Každý zákazník = potenciální recenze → vyšší pozice a více klientů.</li>
+      </ul>
 
-    <h2>🌟 Premium členství</h2>
-    <p><strong>150 Kč / měsíc</strong><br>nebo <strong>130 Kč / měsíc při roční platbě</strong> (1 560 Kč/rok)</p>
-    <ul>
-      <li>✔️ Zvýrazněné pozice ve vyhledávání</li>
-      <li>✔️ Exkluzivita – v každé kategorii pouze omezený počet salonů</li>
-      <li>✔️ Recenzní systém (hvězdičky 1–5, žádné dlouhé texty)</li>
-      <li>✔️ Možnost získávat medaile, topování a další výhody zdarma</li>
-    </ul>
+      <h2>📊 3. Jednoduchá matematika</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Scénář</th>
+            <th>Výsledek</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1 zákazník za půl roku s útratou 1000 Kč</td>
+            <td>Pokryje celý půlroční poplatek</td>
+          </tr>
+          <tr>
+            <td>2 zákazníci měsíčně × 800 Kč</td>
+            <td>≈ 9600 Kč navíc / půl roku → čistý přínos 8700 Kč</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="note">👉 KAM má zdůraznit, že <strong>stačí jediný zákazník</strong> a členství se zaplatí.</p>
 
-    <h2>💼 Proč do toho jít?</h2>
-    <p>Umožňujeme zákazníkům hledat přes <strong>intuitivní filtry</strong> podle:</p>
-    <ul>
-      <li>🔸 Lokality (např. Praha 11)</li>
-      <li>🔸 Typu služby (např. melír, depilace)</li>
-      <li>🔸 Výhod (např. parkování zdarma)</li>
-    </ul>
-    <p>
-      ➡️ Pokud jste ve svém oboru dobří, <strong>zákazníci Vás najdou</strong>.<br>
-      ➡️ V rámci svého zaměření se <strong>neztratíte v konkurenci</strong>.<br>
-      ➡️ <strong>Budujete si věrnou klientelu</strong> bez přetlaku jiných salonů.
-    </p>
+      <h2>🚀 4. Jak vést hovor</h2>
+      <div class="box">
+        <ol>
+          <li>Oslov přátelsky, vysvětli že projekt je <strong>férový a jiný než reklama</strong>.</li>
+          <li>Ptej se na diář: „Máte spíš plno, nebo by se hodili noví zákazníci?“</li>
+          <li>Zdůrazni omezený počet míst v lokalitě = <strong>neztratí se v davu</strong>.</li>
+          <li>Představ jednoduchou cenu a výhody.</li>
+          <li>Uzavři: „Můžeme vás zařadit mezi první salony při spuštění?“</li>
+        </ol>
+      </div>
 
-    <h2>📈 Recenze = růst</h2>
-    <p>Naše platforma je nastavena <strong>spravedlivě</strong>.</p>
-    <p>Každé hodnocení Vás posouvá výš v žebříčku:</p>
-    <ul>
-      <li>✔️ okresní</li>
-      <li>✔️ městský</li>
-      <li>✔️ krajský</li>
-      <li>✔️ celostátní</li>
-    </ul>
-    <p>Za získané hvězdičky si můžete vyměňovat marketingové výhody:</p>
-    <ul>
-      <li>🟢 topování</li>
-      <li>🟢 bannery</li>
-      <li>🟢 označení "Doporučený salon"</li>
-      <li>…a to <strong>bez nutnosti platby navíc!</strong></li>
-    </ul>
+      <h2>🌟 5. Bonusové služby</h2>
+        <p><strong>Okamžité 40% slevy pro partnery UlovSalon.cz na další služby.</strong>
+          <br /> TÍM PÁDEM AŽ TAKOVÉTO CENOVÉ BOMBY:
+          <ul>
+            <li>Profesionální web pro salon již od 4000 Kč.</li>
+            <li>Rezervační kalendář pro beauty salony od 200 Kč/měsíc.</li>
+          </ul>
 
-    <h2>💸 Návratnost členství?</h2>
-    <p>1 zákazník zaplatí běžně <strong>500–1 200 Kč</strong>.</p>
-    <p>
-      ➡️ Premium členství se <strong>vrátí už po jediném klientovi jednou za 3–5 měsíců</strong>.<br>
-      ➡️ <strong>Naším cílem ale je přivádět klienty několikrát do měsíce.</strong>
-    </p>
-
-    <h2>📢 Kde se o Vás zákazníci dozvědí?</h2>
-    <ul>
-      <li>✅ Reklamy na <strong>sociálních sítích</strong></li>
-      <li>✅ Propagace přes <strong>Google a Seznam</strong></li>
-      <li>✅ Cílené kampaně podle lokality a služeb</li>
-    </ul>
-
-    <h2>🤝 Jsme s Vámi od začátku</h2>
-    <ul>
-      <li>🔹 Máte <strong>osobní přístup</strong></li>
-      <li>🔹 Vaše prezentace je <strong>viditelná a smysluplná</strong></li>
-      <li>🔹 Vy jako salon jste <strong>partner</strong>, ne jen záznam v databázi</li>
-    </ul>
-
-    <p><strong>Přidejte se mezi první salony<br>a získejte náskok před konkurencí.</strong></p>
-
+      <h2>🔑 Shrnutí pro KAM</h2>
+      <p class="highlight" style="color:#007c91;">
+              ✔️ Férovost – žádné placené topování  
+        <br />✔️ Viditelnost – omezený počet salonů v lokalitě  
+        <br />✔️ Jednoduchá cena – první měsíc 1 Kč, pak 150 Kč  
+        <br />✔️ Návratnost – zaplatí se jediným zákazníkem  
+      </p>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>

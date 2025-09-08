@@ -80,7 +80,8 @@ class KontaktHistorie(models.Model):
         ("uzavreno", "Obchod uzavřen"),
         ("free_ucet", "Free účet"),
         ("predbezny", "Předběžný zájem"),
-
+        ("no_time", "Nemá čas"),
+        ("nevi", "Neví"),
     ]
 
     partner = models.ForeignKey(

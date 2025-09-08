@@ -32,6 +32,24 @@
                     <tr><th>Telefon</th><td><a href="tel:{{ partner.telefon }}">{{ partner.telefon }}</a></td></tr>
                     <tr><th>Město</th><td>{{ partner.mesto }}</td></tr>
                     <tr><th>Část obce</th><td>{{ partner.cast_obce }}</td></tr>
+                    <tr><th>Adresa</th>
+                        <td>
+                            {{ partner.adresa|default:"—" }}
+                            {% if partner.latitude and partner.longitude %}
+                            <a class="btn btn-sm btn-outline-secondary ms-2"
+                                target="_blank"
+                                href="https://www.google.com/maps?q={{ partner.latitude }},{{ partner.longitude }}">
+                                Mapa
+                            </a>
+                            {% elif partner.adresa %}
+                            <a class="btn btn-sm btn-outline-secondary ms-2"
+                                target="_blank"
+                                href="https://www.google.com/maps/search/?api=1&query={{ partner.adresa|urlencode }}">
+                                Mapa
+                            </a>
+                            {% endif %}
+                        </td>
+                    </tr>
                     <tr><th>Oslovovací pořadí</th><td>{{ partner.oslovovaci_poradi }}</td></tr>
                     <tr><th>Web</th><td><a href="{{ partner.web }}" target="_blank">{{ partner.web }}</a></td></tr>
                     <tr><th>Instagram</th><td><a href="{{ partner.instagram }}" target="_blank">Instagram</a></td></tr>
@@ -68,31 +86,85 @@
         </div>
 
         <h5 class="mt-4">Přidat záznam o kontaktu</h5>
-            <form method="POST" action="{% url 'pridat_kontakt' partner.id %}">
-            {% csrf_token %}
-            <div class="row mb-2">
-                <div class="col">
-                <select name="zpusob" class="form-control">
-                    <option value="telefon">📞 Telefon</option>
-                    <option value="osobne">🤝 Osobně</option>
-                    <option value="email">📧 E-mail</option>
-                    <option value="sms">💬 SMS</option>
-                    <option value="jinak">🔁 Jinak</option>
-                </select>
+        <div class="row g-4">
+            <!-- VLEVO: váš původní formulář -->
+            <div class="col-md-8">
+                <form id="form-novy-kontakt" method="POST" action="{% url 'pridat_kontakt' partner.id %}">
+                {% csrf_token %}
+                <div class="row mb-2">
+                    <div class="col">
+                    <select name="zpusob" class="form-control">
+                        <option value="telefon">📞 Telefon</option>
+                        <option value="osobne">🤝 Osobně</option>
+                        <option value="email">📧 E-mail</option>
+                        <option value="sms">💬 SMS</option>
+                        <option value="jinak">🔁 Jinak</option>
+                    </select>
+                    </div>
+                    <div class="col">
+                    <select name="vysledek" class="form-control">
+                        <option value="no_time">🕒 Nemá Čas</option>
+                        <option value="nezajem">❌ Nemá zájem</option>
+                        <option value="predbezny">💙 Předběžný zájem</option>
+                        <option value="schuzka">📅 Domluvená schůzka</option>
+                        <option value="zajem">👍 Má zájem</option>
+                        <option value="uzavreno">✅ Obchod uzavřen</option>
+                        <option value="nevi">❔ Neví</option>
+                    </select>
+                    </div>
                 </div>
-                <div class="col">
-                <select name="vysledek" class="form-control">
-                    <option value="nezajem">❌ Nemá zájem</option>
-                    <option value="schuzka">📅 Domluvená schůzka</option>
-                    <option value="zajem">👍 Má zájem</option>
-                    <option value="uzavreno">✅ Obchod uzavřen</option>
-                    <option value="free_ucet">🆓 Free účet</option>
-                </select>
+                <textarea name="poznamka" rows="2" class="form-control mb-2" placeholder="Poznámka (volitelné)..."></textarea>
+                <button type="submit" class="btn btn-outline-success">💾 Uložit kontakt</button>
+                </form>
+            </div>
+
+            <!-- VPRAVO: rychlá změna pořadí + legenda -->
+            <div class="col-md-4">
+                <div class="card shadow-sm">
+                <div class="card-body">
+                    <h6 class="card-title mb-2">Oslovovací pořadí</h6>
+                    <form method="POST" action="{% url 'partner_detail' partner.id %}" class="d-flex gap-2 align-items-center">
+                        {% csrf_token %}
+                        <input type="hidden" name="akce" value="zmena_poradi">
+                        <select name="oslovovaci_poradi" class="form-select" style="max-width:120px;">
+                            <option value="0" {% if partner.oslovovaci_poradi == 0 %}selected{% endif %}>0</option>
+                            <option value="1" {% if partner.oslovovaci_poradi == 1 %}selected{% endif %}>1</option>
+                            <option value="2" {% if partner.oslovovaci_poradi == 2 %}selected{% endif %}>2</option>
+                            <option value="3" {% if partner.oslovovaci_poradi == 3 %}selected{% endif %}>3</option>
+                            <option value="4" {% if partner.oslovovaci_poradi == 4 %}selected{% endif %}>4</option>
+                            <option value="5" {% if partner.oslovovaci_poradi == 5 %}selected{% endif %}>5</option>
+                            <option value="6" {% if partner.oslovovaci_poradi == 6 %}selected{% endif %}>6</option>
+                            <option value="7" {% if partner.oslovovaci_poradi == 7 %}selected{% endif %}>7</option>
+                            <option value="8" {% if partner.oslovovaci_poradi == 8 %}selected{% endif %}>8</option>
+                            <option value="9" {% if partner.oslovovaci_poradi == 9 %}selected{% endif %}>9</option>
+                        </select>
+                        <button type="submit" class="btn btn-primary btn-sm">Uložit</button>
+                    </form>
+
+                    <hr class="my-3">
+                    <style>
+                    .legend-dot{display:inline-block;width:12px;height:12px;border-radius:50%;border:1px solid #aaa;margin-right:6px;vertical-align:middle;}
+                    </style>
+                    <div class="small">
+                    <strong>Legenda barev</strong>
+                    <ul class="list-unstyled mt-2 mb-0">
+                        <li><span class="legend-dot" style="background: yellow;"></span>0 – Neoslovený</li>
+                        <li><span class="legend-dot" style="background: green;"></span>1 – Aktivoval službu</li>
+                        <li><span class="legend-dot" style="background: blue;"></span>2 – Bude mít asi zájem</li>
+                        <li><span class="legend-dot" style="background: orange;"></span>3 – Asi nebude mít zájem</li>
+                        <li><span class="legend-dot" style="background: black;"></span>4 – Zrušeno, již nepodniká</li>
+                        <li><span class="legend-dot" style="background: turquoise;"></span>5 – none</li>
+                        <li><span class="legend-dot" style="background: brown;"></span>6 – none</li>
+                        <li><span class="legend-dot" style="background: gold;"></span>7 – Nezvedá nebo neměl čas</li>
+                        <li><span class="legend-dot" style="background: violet;"></span>8 – Zatím nechce</li>
+                        <li><span class="legend-dot" style="background: red;"></span>9 – Nechce</li>
+                    </ul>
+                    <div class="text-muted mt-2">Stejné barvy používá i mapa.</div>
+                    </div>
+                </div>
                 </div>
             </div>
-            <textarea name="poznamka" rows="2" class="form-control mb-2" placeholder="Poznámka (volitelné)..."></textarea>
-            <button type="submit" class="btn btn-outline-success">💾 Uložit kontakt</button>
-            </form>
+            </div>
     </div>
 
     <h4 class="mt-5">Historie kontaktů</h4>
@@ -130,18 +202,113 @@
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script>
-        const map = L.map('map').setView([{{ partner.latitude }}, {{ partner.longitude }}], 15);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; OpenStreetMap contributors'
-        }).addTo(map);
+        <script>
+        const poradi = {{ partner.oslovovaci_poradi|default:"0" }};
+        const lat = {{ partner.latitude|default:"null" }};
+        const lon = {{ partner.longitude|default:"null" }};
 
-        L.marker([{{ partner.latitude }}, {{ partner.longitude }}])
+        // Stejná mapa barev jako v MAPA.html
+        const barvy = {
+            1: "green",
+            2: "blue",
+            3: "orange",
+            4: "black",
+            5: "turquoise",
+            6: "brown",
+            7: "gold",
+            8: "violet",
+            9: "red",
+        };
+        const color = barvy[poradi] || "yellow"; // default pro 0 / neurčeno
+
+        // Inicializace mapy jen když máme souřadnice
+        if (lat !== null && lon !== null) {
+            const map = L.map('map').setView([lat, lon], 15);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
+
+            // Barevná ikona (stejná CDN jako v MAPA.html)
+            const customIcon = L.icon({
+            iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-${color}.png`,
+            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/images/marker-shadow.png',
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34]
+            });
+
+            L.marker([lat, lon], { icon: customIcon })
             .addTo(map)
-            .bindPopup("<strong>{{ partner.jmeno }}</strong><br>{{ partner.mesto }}");
-    </script>
+            .bindPopup("<strong>{{ partner.jmeno|escapejs }}</strong><br>{{ partner.mesto|default:'-'|escapejs }}");
+        }
+
+        // Obarvení tečky vedle "Oslovovací pořadí" (viz krok 2)
+        const dot = document.getElementById('opDot');
+        if (dot) dot.style.background = color;
+        </script>
+
 
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+    <script>
+        (function () {
+        const form = document.getElementById('form-novy-kontakt');
+        if (!form) return;
+
+        // Aktuální pořadí z backendu
+        const currentOrder = {{ partner.oslovovaci_poradi|default:"0" }};
+
+        // Lidsky čitelná legenda 
+        const legend = {
+            0: "0 – Neoslovený",
+            1: "1 – Aktivoval službu",
+            2: "2 – Bude mít asi zájem",
+            3: "3 – Asi nebude mít zájem",
+            4: "4 – Zrušeno, již nepodniká",
+            5: "5 – none",
+            6: "6 – none",
+            7: "7 – Nezvedá nebo neměl čas",
+            8: "8 – Zatím nechce",
+            9: "9 – Nechce"
+        };
+
+        form.addEventListener('submit', function (e) {
+            const sel = form.querySelector('select[name="oslovovaci_poradi_nove"]');
+
+            let needsConfirm = true;
+            let message = `Nezapomněl jste změnit kód oslovovacího pořadí?\n\n` +
+                        `Aktuálně nastaveno: ${legend[currentOrder] ?? currentOrder}`;
+
+            if (sel) {
+            const rawVal = sel.value;
+            const newOrder = parseInt(rawVal, 10);
+
+            if (rawVal && !Number.isNaN(newOrder)) {
+                if (newOrder !== currentOrder) {
+                // máme vybráno a je to jiné → není třeba potvrzovat
+                needsConfirm = false;
+                } else {
+                // vybrané je stejné jako aktuální
+                message += `\nZvolené nové pořadí je stejné: ${legend[newOrder] ?? newOrder}\n\n` +
+                            `Opravdu chcete uložit kontakt bez změny?`;
+                }
+            } else {
+                // nic nevybráno
+                message += `\nNové oslovovací pořadí není vybráno.\n\n` +
+                        `Opravdu chcete uložit kontakt bez změny?`;
+            }
+            } else {
+            // select neexistuje → vždy se ptáme
+            message += `\n\nOpravdu chcete uložit kontakt bez změny?`;
+            }
+
+            if (needsConfirm) {
+            const ok = confirm(message);
+            if (!ok) e.preventDefault();
+            }
+        });
+        })();
+    </script>
+
     </body>
 </html>

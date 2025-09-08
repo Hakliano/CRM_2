@@ -2,6 +2,7 @@ from django.urls import path
 from . import views
 # from django.contrib.auth import views as auth_views
 from django.contrib.auth.views import LogoutView, LoginView
+from partners import views as partner_views
 
 
 urlpatterns = [
@@ -21,4 +22,5 @@ urlpatterns = [
     path("partner/<int:pk>/kontakt/", views.pridat_kontakt, name="pridat_kontakt"),
     path("import/", views.import_partners_view, name="import-partners"),
     path("upravaPartneru/", views.upravaPartneru, name="upravaPartneru"),
+    path("callscripty/", partner_views.callscripty, name="callscripty"),
 ]

@@ -1,48 +1,70 @@
-<!-- hlavicka.html -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="#">CRM pro Umiš to</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav me-auto">
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'home' %}">Domů</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'novy_partner' %}">Přidat partnera</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'seznam_partneru' %}">Seznam partnerů</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'filtr_partneru' %}">Filtrovat partnery</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'mapa_partneru' %}">Mapa</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'import-partners' %}">Import</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'upravaPartneru' %}">🛠 Upravit partnery</a>
-                </li>
-            </ul>
-            
+{# templates/partners/hlavicka.html #}
+<nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm sticky-top">
+  <div class="container">
+    <a class="navbar-brand fw-bold" href="{% url 'home' %}">CRM&nbsp;pro&nbsp;Umiš&nbsp;to</a>
 
-            <div class="d-flex align-items-center">
-                {% if request.user.is_authenticated %}
-                <form method="post" action="{% url 'logout' %}" style="display:inline;">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-outline-danger">Odhlásit se</button>
-                </form>
-                {% else %}
-                <form method="post" action="{% url 'login' %}" style="display:inline;">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-outline-danger">Login</button>
-                </form>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav"
+            aria-controls="mainNav" aria-expanded="false" aria-label="Přepnout navigaci">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="mainNav">
+      {# ---- LEVÁ ČÁST: menu ---- #}
+      <ul class="navbar-nav me-auto">
+        {% with current=request.resolver_match.url_name %}
+          {% with partners_urls="filtr_partneru,mapa_partneru,novy_partner,upravaPartneru" %}
+          <li class="nav-item">
+            <a class="nav-link {% if current == 'home' %}active{% endif %}" href="{% url 'home' %}">🏠 Domů</a>
+          </li>
+
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle {% if current in partners_urls %}active{% endif %}" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              👥 Partneři
+            </a>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item {% if current == 'filtr_partneru' %}active{% endif %}" href="{% url 'filtr_partneru' %}">🔎 Filtrovat partnery</a></li>
+              <li><a class="dropdown-item {% if current == 'mapa_partneru' %}active{% endif %}" href="{% url 'mapa_partneru' %}">🗺️ Mapa</a></li>
+              <li><a class="dropdown-item {% if current == 'novy_partner' %}active{% endif %}" href="{% url 'novy_partner' %}">➕ Přidat partnera</a></li>
+              <li><a class="dropdown-item {% if current == 'upravaPartneru' %}active{% endif %}" href="{% url 'upravaPartneru' %}">🛠 Upravit partnery</a></li>
+            </ul>
+          </li>
+
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle {% if current == 'callscripty' or current == 'import-partners' %}active{% endif %}" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              🧰 Nástroje
+            </a>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item {% if current == 'callscripty' %}active{% endif %}" href="{% url 'callscripty' %}">📞 Call skripty</a></li>
+                <li><a class="dropdown-item {% if current == 'import-partners' %}active{% endif %}" href="{% url 'import-partners' %}">⬆️ Import</a></li>
+                {% if request.user.is_staff or request.user.is_superuser %}
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="{% url 'admin:index' %}">⚙️ Admin</a></li>
                 {% endif %}
-            </div>
+            </ul>
+          </li>
+          {% endwith %}
+        {% endwith %}
+      </ul>
+
+      {# ---- PRAVÁ ČÁST: rychlé hledání + uživatel ---- #}
+      <form action="{% url 'filtr_partneru' %}" method="get" class="d-flex me-lg-3 my-2 my-lg-0" role="search">
+        <input name="jmeno" class="form-control form-control-sm" type="search"
+               placeholder="Hledat partnera..." aria-label="Hledat"
+               value="{{ request.GET.jmeno }}">
+        <button class="btn btn-outline-secondary btn-sm ms-2" type="submit">Hledat</button>
+      </form>
+
+      <div class="d-flex align-items-center gap-2">
+        {% if request.user.is_authenticated %}
+          <span class="text-muted small d-none d-lg-inline">Přihlášen: <strong>{{ request.user.username }}</strong></span>
+          <form method="post" action="{% url 'logout' %}" class="m-0">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-outline-danger btn-sm">Odhlásit se</button>
+          </form>
+        {% else %}
+          <a href="{% url 'login' %}" class="btn btn-primary btn-sm">Přihlásit se</a>
+        {% endif %}
+      </div>
     </div>
+  </div>
 </nav>
