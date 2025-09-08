@@ -57,11 +57,17 @@
             1: "green",   // 🟢 Zelená
             2: "blue",    // 🔵 Modrá
             3: "orange",  // 🟠 Oranžová
+            4: "black",   // černá
+            5: "turquoise",    // ružová
+            6: "brown",  // bílá
+            7: "gold",   // zlatá
+            8: "violet",    // violet
+            9: "red",  // 🔴 Červená
         };
     
         partneri.forEach(partner => {
             if (partner.latitude && partner.longitude) {
-                let color = barvy[partner.oslovovaci_poradi] || "red"; // 🔴 Červená jako výchozí
+                let color = barvy[partner.oslovovaci_poradi] || "yellow"; // žlutá jako výchozí
     
                 let customIcon = L.icon({
                     iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-${color}.png`,

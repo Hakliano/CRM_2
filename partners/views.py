@@ -5,12 +5,12 @@ from django.core.paginator import Paginator
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.http import JsonResponse
-from django.db.models import Count, Q
+from django.db.models import Count, Q, OuterRef, Subquery, F, OrderBy
+
 from django.contrib import messages
 from .models import Partner, Sekce, KontaktHistorie
 from .forms import PartnerForm, PartnerFilterForm
 from django.views.decorators.http import require_GET
-from django.db.models import OuterRef, Subquery
 from decimal import Decimal, InvalidOperation
 from .forms import JSONUploadForm
 
@@ -149,45 +149,61 @@ def seznam_partneru(request):
 @login_required
 def filtrovat_partnery(request):
     form = PartnerFilterForm(request.GET or None)
-    partneri = Partner.objects.all()
+    partneri = Partner.objects.all().select_related("sekce", "key_account_manager", "created_by")
     sekce_list = Sekce.objects.all()
 
-    # Subquery pro poslední kontakt
-    last_contact = KontaktHistorie.objects.filter(partner=OuterRef("pk")).order_by(
-        "-datum"
-    )
+    # POSLEDNÍ kontakt daného partnera (jednoznačně dle data a id)
+    last_contact = KontaktHistorie.objects.filter(
+        partner=OuterRef("pk")
+    ).order_by("-datum", "-id")
+
     partneri = partneri.annotate(
+        posledni_kontakt_id=Subquery(last_contact.values("id")[:1]),
         posledni_datum=Subquery(last_contact.values("datum")[:1]),
         posledni_zpusob=Subquery(last_contact.values("zpusob")[:1]),
         posledni_vysledek=Subquery(last_contact.values("vysledek")[:1]),
         posledni_kontaktoval=Subquery(last_contact.values("kontaktoval__username")[:1]),
     )
 
-    if form.is_valid():
-        data = form.cleaned_data
+    # ✅ VŽDY mít 'data' – i když form.is_valid() vrátí False
+    data = form.cleaned_data if form.is_valid() else {}
 
-        if data["jmeno"]:
-            partneri = partneri.filter(jmeno__icontains=data["jmeno"])
-        if data["mesto"]:
-            partneri = partneri.filter(mesto__icontains=data["mesto"])
-        if data["cast_obce"]:
-            partneri = partneri.filter(cast_obce__icontains=data["cast_obce"])
-        if data["sekce"]:
-            partneri = partneri.filter(sekce_sekundarni=data["sekce"])
-        if data["oslovovaci_poradi"] is not None:
-            partneri = partneri.filter(oslovovaci_poradi=data["oslovovaci_poradi"])
-        if data["created_by"]:
-            partneri = partneri.filter(created_by=data["created_by"])
-        if data["kontaktovan"] in ["True", "False"]:
-            partneri = partneri.filter(kontaktovan=(data["kontaktovan"] == "True"))
-        if data["vysledek_kontaktu"]:
-            partneri = partneri.filter(
-                vysledek_kontaktu__icontains=data["vysledek_kontaktu"]
-            )
-        if data["key_account_manager"]:
-            partneri = partneri.filter(key_account_manager=data["key_account_manager"])
+    # --- běžné filtry (nekontaktní) ---
+    if data.get("jmeno"):
+        partneri = partneri.filter(jmeno__icontains=data["jmeno"])
+    if data.get("mesto"):
+        partneri = partneri.filter(mesto__icontains=data["mesto"])
+    if data.get("cast_obce"):
+        partneri = partneri.filter(cast_obce__icontains=data["cast_obce"])
+    if data.get("sekce"):
+        partneri = partneri.filter(sekce_sekundarni=data["sekce"])
+    if data.get("oslovovaci_poradi") is not None and data.get("oslovovaci_poradi") != "":
+        partneri = partneri.filter(oslovovaci_poradi=data["oslovovaci_poradi"])
+    if data.get("created_by"):
+        partneri = partneri.filter(created_by=data["created_by"])
+    if data.get("key_account_manager"):
+        partneri = partneri.filter(key_account_manager=data["key_account_manager"])
 
-    # 🔥 Stránkování mimo if – musí fungovat vždy
+    # ✅ FILTR POUZE podle POSLEDNÍHO kontaktu (aktuální stav)
+    if data.get("posledni_vysledek"):
+        partneri = partneri.filter(
+            kontakty__id=F("posledni_kontakt_id"),
+            kontakty__vysledek=data["posledni_vysledek"],
+        )
+
+    # ✅ „Kontaktován“ = existence posledního kontaktu
+    if data.get("kontaktovan") in ["True", "False"]:
+        # True  -> poslední_kontakt existuje (isnull=False)
+        # False -> poslední_kontakt neexistuje (isnull=True)
+        partneri = partneri.filter(posledni_kontakt_id__isnull=(data["kontaktovan"] != "True"))
+
+    # řazení: nejnovější poslední kontakt první, bez „díry“ pro NULL
+    partneri = partneri.order_by(
+        OrderBy(F("posledni_datum"), descending=True, nulls_last=True),
+        "-id",
+    )
+
+    # stránkování
     paginator = Paginator(partneri, 25)
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
@@ -199,8 +215,10 @@ def filtrovat_partnery(request):
             "form": form,
             "partneri": page_obj,
             "sekce_list": sekce_list,
+            "vysledky_kontaktu": KontaktHistorie.VYSLEDKY_KONTAKTU,
         },
     )
+
 
 
 def home(request):
@@ -251,7 +269,20 @@ def partneri_json(request):
                 if partner.oslovovaci_poradi == 2
                 else "orange"
                 if partner.oslovovaci_poradi == 3
+                else "black"
+                if partner.oslovovaci_poradi == 4
+                else "turquoise"
+                if partner.oslovovaci_poradi == 5
+                else "brown"
+                if partner.oslovovaci_poradi == 6
+                else "gold"
+                if partner.oslovovaci_poradi == 7
+                else "violet"
+                if partner.oslovovaci_poradi == 8
                 else "red"
+                if partner.oslovovaci_poradi == 9
+                else "red"
+                
             ),  # 🌈 Barevná logika
         }
         for partner in partneri

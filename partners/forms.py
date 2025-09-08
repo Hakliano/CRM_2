@@ -1,10 +1,9 @@
 from django import forms
-from .models import Sekce, Partner
+from .models import Sekce, Partner, KontaktHistorie
 from django.contrib.auth.models import User
 from decimal import Decimal, ROUND_DOWN
 from django.forms.widgets import CheckboxSelectMultiple
 from django.db.models import Q
-
 
 
 
@@ -90,7 +89,12 @@ class PartnerFilterForm(forms.Form):
         required=False,
         label="Kontaktován",
     )
-    vysledek_kontaktu = forms.CharField(required=False, label="Výsledek kontaktu")
+    
+    posledni_vysledek = forms.ChoiceField(
+        required=False,
+        label="Poslední výsledek kontaktu",
+        choices=[("", "--- Poslední výsledek kontaktu ---")] + list(KontaktHistorie.VYSLEDKY_KONTAKTU),
+    )
 
     key_account_manager = forms.ModelChoiceField(
         queryset=User.objects.all(),
@@ -99,7 +103,6 @@ class PartnerFilterForm(forms.Form):
         empty_label="--- Nerozhoduje ---",
     )
 
-    # 💡 TADY UŽ JE TO SPRÁVNĚ:
     def get_filtered_queryset(self):
         queryset = Partner.objects.all()
 
@@ -125,15 +128,6 @@ class PartnerFilterForm(forms.Form):
         if self.cleaned_data.get("created_by"):
             queryset = queryset.filter(created_by=self.cleaned_data["created_by"])
 
-        if self.cleaned_data.get("kontaktovan") in ["True", "False"]:
-            queryset = queryset.filter(
-                kontaktovan=self.cleaned_data["kontaktovan"] == "True"
-            )
-
-        if self.cleaned_data.get("vysledek_kontaktu"):
-            queryset = queryset.filter(
-                vysledek_kontaktu__icontains=self.cleaned_data["vysledek_kontaktu"]
-            )
 
         if self.cleaned_data.get("key_account_manager"):
             queryset = queryset.filter(

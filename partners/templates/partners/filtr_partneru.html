@@ -48,6 +48,16 @@
             <div class="col">
                 <button type="submit" class="btn btn-primary">Vyhledat</button>
             </div>
+            <div class="col">
+                <select class="form-control" name="posledni_vysledek">
+                    <option value="">--- Poslední výsledek kontaktu ---</option>
+                    {% for value,label in vysledky_kontaktu %}
+                        <option value="{{ value }}" {% if request.GET.posledni_vysledek == value %}selected{% endif %}>
+                            {{ label }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
         </div>
     </form>
 
@@ -78,7 +88,6 @@
                 <td>{{ partner.mesto }}</td>
                 <td>{{ partner.cast_obce }}</td>
                 <td>{{ partner.oslovovaci_poradi }}</td>
-                <td>{{ partner.vysledek_kontaktu }}</td>
                 <td>{{ partner.ICO }}</td>
                 <td>
                     {% if partner.key_account_manager %}
@@ -89,7 +98,15 @@
                 </td>
                 <td>{{ partner.posledni_datum|date:"d.m.Y H:i" }}</td>
                 <td>{{ partner.posledni_zpusob }}</td>
-                <td>{{ partner.posledni_vysledek }}</td>
+                <td>
+                    {% if partner.posledni_vysledek %}
+                        {% for value,label in vysledky_kontaktu %}
+                        {% if partner.posledni_vysledek == value %}{{ label }}{% endif %}
+                        {% endfor %}
+                    {% else %}
+                        <span class="text-muted">—</span>
+                    {% endif %}
+                </td>
                 <td>{{ partner.posledni_kontaktoval }}</td>
                 <td>
                     {{ partner.sekce.nazev }}
