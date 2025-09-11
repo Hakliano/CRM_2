@@ -551,7 +551,17 @@ def pridat_kontakt(request, pk):
 
 @login_required
 def upravaPartneru(request):
+    # --- FILTR: město (GET ?mesto=...) ---
+    selected_mesto = (request.GET.get("mesto") or "").strip()
+
     partners = Partner.objects.all().order_by("jmeno")
+
+    # Podpora "Prázdno" = __EMPTY__  -> mesto IS NULL nebo ""
+    if selected_mesto == "__EMPTY__":
+        partners = partners.filter(Q(mesto__isnull=True) | Q(mesto__exact=""))
+    elif selected_mesto:
+        partners = partners.filter(mesto__icontains=selected_mesto)
+
     paginator = Paginator(partners, 25)
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
@@ -573,10 +583,24 @@ def upravaPartneru(request):
             partner.save()
             partner.sekce_sekundarni.set(nove_sekce)
 
-        return redirect(request.path_info)
+        # Zachovej aktuální filtr i stránku po uložení
+        qs = request.GET.copy()
+        qs["page"] = page_obj.number
+        return redirect(f"{request.path}?{qs.urlencode()}")
 
     vsechny_sekce = Sekce.objects.all()
     users = User.objects.all()
+
+    # Seznam měst pro select (distinct, bez prázdných)
+    mesta = (
+        Partner.objects.exclude(mesto__isnull=True)
+        .exclude(mesto__exact="")
+        .values_list("mesto", flat=True)
+        .distinct()
+        .order_by("mesto")
+    )
+    # Přidáme syntetickou volbu "__EMPTY__" pro "Prázdno"
+    mesta = ["__EMPTY__"] + list(mesta)
 
     return render(
         request,
@@ -585,6 +609,8 @@ def upravaPartneru(request):
             "page_obj": page_obj,
             "vsechny_sekce": vsechny_sekce,
             "users": users,
+            "mesta": mesta,
+            "selected_mesto": selected_mesto,
         },
     )
 

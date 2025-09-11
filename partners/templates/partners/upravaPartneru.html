@@ -40,43 +40,83 @@
     <div class="container py-4">
       <h1 class="mb-4">Správa partnerů</h1>
 
+      <!-- FILTR: Město -->
+      <form method="get" class="row g-2 align-items-end mb-3">
+        <div class="col-12 col-md-6 col-lg-4">
+          <label for="mesto" class="form-label">Filtrovat podle města</label>
+
+          {% if mesta %}
+            <!-- Varianta A: SELECT -->
+            <select id="mesto" name="mesto" class="form-select">
+              <option value="">— Všechna města —</option>
+              <option value="__EMPTY__" {% if selected_mesto == "__EMPTY__" %}selected{% endif %}>— Prázdno —</option>
+              {% for m in mesta %}
+                {% if m != "__EMPTY__" %}
+                  <option value="{{ m }}" {% if m == selected_mesto %}selected{% endif %}>{{ m }}</option>
+                {% endif %}
+              {% endfor %}
+            </select>
+          {% else %}
+            <!-- Varianta B: TEXT INPUT + volba Prázdno (bez změn ve view) -->
+            <div class="d-flex gap-2 align-items-center">
+              <input id="mesto" name="mesto" type="text" class="form-control"
+                    value="{{ selected_mesto }}" placeholder="Např. Praha">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="mesto_empty_chk"
+                      {% if selected_mesto == "__EMPTY__" %}checked{% endif %}
+                      onchange="document.getElementById('mesto').value = this.checked ? '__EMPTY__' : '';">
+                <label class="form-check-label" for="mesto_empty_chk">Prázdno</label>
+              </div>
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="col-12 col-md-auto">
+          <button type="submit" class="btn btn-primary">Filtrovat</button>
+          {% if selected_mesto %}
+            <a href="{{ request.path }}" class="btn btn-outline-secondary">Zrušit filtr</a>
+          {% endif %}
+        </div>
+      </form>
 
 
             <!-- Stránkování -->
-            <nav>
-                <ul class="pagination justify-content-center">
-              
-                  {% if page_obj.has_previous %}
-                    <li class="page-item">
-                      <a class="page-link" href="?page={{ page_obj.previous_page_number }}">«</a>
-                    </li>
-                  {% endif %}
-              
-                  {% for i in page_obj.paginator.page_range %}
-                    {% if i >= page_obj.number|add:'-5' and i <= page_obj.number|add:'5' %}
-                      <li class="page-item {% if page_obj.number == i %}active{% endif %}">
-                        <a class="page-link" href="?page={{ i }}">{{ i }}</a>
-                      </li>
-                    {% endif %}
-                  {% endfor %}
-              
-                  {% if page_obj.has_next %}
-                    <li class="page-item">
-                      <a class="page-link" href="?page={{ page_obj.next_page_number }}">»</a>
-                    </li>
-                  {% endif %}
-                </ul>
-              
-                <!-- Rychlý skok na libovolnou stránku -->
-                <form method="get" class="d-flex justify-content-center align-items-center mt-2">
-                  <label for="page_jump" class="me-2 mb-0">Přejít na stránku:</label>
-                  <input type="number" id="page_jump" name="page" min="1" max="{{ page_obj.paginator.num_pages }}" class="form-control me-2" style="width: 100px;" required>
-                  <button type="submit" class="btn btn-outline-primary btn-sm">Přejít</button>
-                </form>
-              </nav>
+      <nav>
+        <ul class="pagination justify-content-center">
 
+          {% if page_obj.has_previous %}
+            <li class="page-item">
+              <a class="page-link" href="?{% if selected_mesto %}mesto={{ selected_mesto|urlencode }}&{% endif %}page={{ page_obj.previous_page_number }}">«</a>
+            </li>
+          {% endif %}
 
-              
+          {% for i in page_obj.paginator.page_range %}
+            {% if i >= page_obj.number|add:'-5' and i <= page_obj.number|add:'5' %}
+              <li class="page-item {% if page_obj.number == i %}active{% endif %}">
+                <a class="page-link" href="?{% if selected_mesto %}mesto={{ selected_mesto|urlencode }}&{% endif %}page={{ i }}">{{ i }}</a>
+              </li>
+            {% endif %}
+          {% endfor %}
+
+          {% if page_obj.has_next %}
+            <li class="page-item">
+              <a class="page-link" href="?{% if selected_mesto %}mesto={{ selected_mesto|urlencode }}&{% endif %}page={{ page_obj.next_page_number }}">»</a>
+            </li>
+          {% endif %}
+        </ul>
+
+        <!-- Rychlý skok na libovolnou stránku -->
+        <form method="get" class="d-flex justify-content-center align-items-center mt-2">
+          {% if selected_mesto %}
+            <input type="hidden" name="mesto" value="{{ selected_mesto }}">
+          {% endif %}
+          <label for="page_jump" class="me-2 mb-0">Přejít na stránku:</label>
+          <input type="number" id="page_jump" name="page" min="1" max="{{ page_obj.paginator.num_pages }}"
+                class="form-control me-2" style="width: 100px;" required>
+          <button type="submit" class="btn btn-outline-primary btn-sm">Přejít</button>
+        </form>
+      </nav>
+
       <form method="post">
         {% csrf_token %}
         <table class="table table-bordered align-middle">
@@ -141,35 +181,43 @@
       <!-- Stránkování -->
       <nav>
         <ul class="pagination justify-content-center">
-      
+
           {% if page_obj.has_previous %}
             <li class="page-item">
-              <a class="page-link" href="?page={{ page_obj.previous_page_number }}">«</a>
+              <a class="page-link"
+                href="?{% if selected_mesto %}mesto={{ selected_mesto|urlencode }}&{% endif %}page={{ page_obj.previous_page_number }}">«</a>
             </li>
           {% endif %}
-      
+
           {% for i in page_obj.paginator.page_range %}
             {% if i >= page_obj.number|add:'-5' and i <= page_obj.number|add:'5' %}
               <li class="page-item {% if page_obj.number == i %}active{% endif %}">
-                <a class="page-link" href="?page={{ i }}">{{ i }}</a>
+                <a class="page-link"
+                  href="?{% if selected_mesto %}mesto={{ selected_mesto|urlencode }}&{% endif %}page={{ i }}">{{ i }}</a>
               </li>
             {% endif %}
           {% endfor %}
-      
+
           {% if page_obj.has_next %}
             <li class="page-item">
-              <a class="page-link" href="?page={{ page_obj.next_page_number }}">»</a>
+              <a class="page-link"
+                href="?{% if selected_mesto %}mesto={{ selected_mesto|urlencode }}&{% endif %}page={{ page_obj.next_page_number }}">»</a>
             </li>
           {% endif %}
         </ul>
-      
+
         <!-- Rychlý skok na libovolnou stránku -->
         <form method="get" class="d-flex justify-content-center align-items-center mt-2">
+          {% if selected_mesto %}
+            <input type="hidden" name="mesto" value="{{ selected_mesto }}">
+          {% endif %}
           <label for="page_jump" class="me-2 mb-0">Přejít na stránku:</label>
-          <input type="number" id="page_jump" name="page" min="1" max="{{ page_obj.paginator.num_pages }}" class="form-control me-2" style="width: 100px;" required>
+          <input type="number" id="page_jump" name="page" min="1" max="{{ page_obj.paginator.num_pages }}"
+                class="form-control me-2" style="width: 100px;" required>
           <button type="submit" class="btn btn-outline-primary btn-sm">Přejít</button>
         </form>
       </nav>
+
     </div>
   </body>
 </html>
