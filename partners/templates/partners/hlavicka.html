@@ -36,6 +36,7 @@
             <ul class="dropdown-menu">
                 <li><a class="dropdown-item {% if current == 'callscripty' %}active{% endif %}" href="{% url 'callscripty' %}">📞 Call skripty</a></li>
                 <li><a class="dropdown-item {% if current == 'import-partners' %}active{% endif %}" href="{% url 'import-partners' %}">⬆️ Import</a></li>
+                <li><a class="dropdown-item" href="{% url 'export_partneru_json' %}">⬇️ Export partnerů (JSON)</a></li>
                 {% if request.user.is_staff or request.user.is_superuser %}
                     <li><hr class="dropdown-divider"></li>
                     <li><a class="dropdown-item" href="{% url 'admin:index' %}">⚙️ Admin</a></li>

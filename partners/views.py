@@ -4,7 +4,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.core.paginator import Paginator
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.db.models import Count, Q, OuterRef, Subquery, F, OrderBy
 
 from django.contrib import messages
@@ -14,6 +14,75 @@ from django.views.decorators.http import require_GET
 from decimal import Decimal, InvalidOperation
 from math import ceil
 from django.utils.safestring import mark_safe
+
+
+def _partneri_queryset_pro_filtr(request):
+    """
+    Stejný queryset jako stránka Filtrovat partnery (bez stránkování).
+    """
+    form = PartnerFilterForm(request.GET or None)
+    partneri = Partner.objects.all().select_related(
+        "sekce", "key_account_manager", "created_by"
+    )
+    last_contact = KontaktHistorie.objects.filter(partner=OuterRef("pk")).order_by(
+        "-datum", "-id"
+    )
+    partneri = partneri.annotate(
+        posledni_kontakt_id=Subquery(last_contact.values("id")[:1]),
+        posledni_datum=Subquery(last_contact.values("datum")[:1]),
+        posledni_zpusob=Subquery(last_contact.values("zpusob")[:1]),
+        posledni_vysledek=Subquery(last_contact.values("vysledek")[:1]),
+        posledni_kontaktoval=Subquery(
+            last_contact.values("kontaktoval__username")[:1]
+        ),
+    )
+    data = form.cleaned_data if form.is_valid() else {}
+    if data.get("jmeno"):
+        partneri = partneri.filter(jmeno__icontains=data["jmeno"])
+    if data.get("mesto"):
+        partneri = partneri.filter(mesto__icontains=data["mesto"])
+    if data.get("cast_obce"):
+        partneri = partneri.filter(cast_obce__icontains=data["cast_obce"])
+    if data.get("sekce"):
+        partneri = partneri.filter(sekce_sekundarni=data["sekce"])
+    if data.get("oslovovaci_poradi") is not None and data.get("oslovovaci_poradi") != "":
+        partneri = partneri.filter(oslovovaci_poradi=data["oslovovaci_poradi"])
+    if data.get("created_by"):
+        partneri = partneri.filter(created_by=data["created_by"])
+    if data.get("key_account_manager"):
+        partneri = partneri.filter(key_account_manager=data["key_account_manager"])
+    if data.get("posledni_vysledek"):
+        partneri = partneri.filter(
+            kontakty__id=F("posledni_kontakt_id"),
+            kontakty__vysledek=data["posledni_vysledek"],
+        )
+    if data.get("kontaktovan") in ["True", "False"]:
+        partneri = partneri.filter(
+            posledni_kontakt_id__isnull=(data["kontaktovan"] != "True")
+        )
+    partneri = partneri.order_by(
+        OrderBy(F("posledni_datum"), descending=True, nulls_last=True),
+        "-id",
+    )
+    return partneri, form
+
+
+def _normalize_export_web(url):
+    if not url:
+        return ""
+    u = str(url).strip()
+    if not u:
+        return ""
+    if u.startswith(("http://", "https://")):
+        return u
+    return f"https://{u.lstrip('/')}"
+
+
+def _company_name_pro_export(jmeno):
+    name = (jmeno or "").strip()
+    if name.upper().startswith("SALON"):
+        return name
+    return f"SALON -{name}" if name else "SALON -"
 
 @login_required
 def import_partners_view(request):
@@ -141,65 +210,16 @@ def seznam_partneru(request):
 
 @login_required
 def filtrovat_partnery(request):
-    form = PartnerFilterForm(request.GET or None)
-    partneri = Partner.objects.all().select_related("sekce", "key_account_manager", "created_by")
+    partneri, form = _partneri_queryset_pro_filtr(request)
     sekce_list = Sekce.objects.all()
 
-    # POSLEDNÍ kontakt daného partnera (jednoznačně dle data a id)
-    last_contact = KontaktHistorie.objects.filter(
-        partner=OuterRef("pk")
-    ).order_by("-datum", "-id")
-
-    partneri = partneri.annotate(
-        posledni_kontakt_id=Subquery(last_contact.values("id")[:1]),
-        posledni_datum=Subquery(last_contact.values("datum")[:1]),
-        posledni_zpusob=Subquery(last_contact.values("zpusob")[:1]),
-        posledni_vysledek=Subquery(last_contact.values("vysledek")[:1]),
-        posledni_kontaktoval=Subquery(last_contact.values("kontaktoval__username")[:1]),
-    )
-
-    # ✅ VŽDY mít 'data' – i když form.is_valid() vrátí False
-    data = form.cleaned_data if form.is_valid() else {}
-
-    # --- běžné filtry (nekontaktní) ---
-    if data.get("jmeno"):
-        partneri = partneri.filter(jmeno__icontains=data["jmeno"])
-    if data.get("mesto"):
-        partneri = partneri.filter(mesto__icontains=data["mesto"])
-    if data.get("cast_obce"):
-        partneri = partneri.filter(cast_obce__icontains=data["cast_obce"])
-    if data.get("sekce"):
-        partneri = partneri.filter(sekce_sekundarni=data["sekce"])
-    if data.get("oslovovaci_poradi") is not None and data.get("oslovovaci_poradi") != "":
-        partneri = partneri.filter(oslovovaci_poradi=data["oslovovaci_poradi"])
-    if data.get("created_by"):
-        partneri = partneri.filter(created_by=data["created_by"])
-    if data.get("key_account_manager"):
-        partneri = partneri.filter(key_account_manager=data["key_account_manager"])
-
-    # ✅ FILTR POUZE podle POSLEDNÍHO kontaktu (aktuální stav)
-    if data.get("posledni_vysledek"):
-        partneri = partneri.filter(
-            kontakty__id=F("posledni_kontakt_id"),
-            kontakty__vysledek=data["posledni_vysledek"],
-        )
-
-    # ✅ „Kontaktován“ = existence posledního kontaktu
-    if data.get("kontaktovan") in ["True", "False"]:
-        # True  -> poslední_kontakt existuje (isnull=False)
-        # False -> poslední_kontakt neexistuje (isnull=True)
-        partneri = partneri.filter(posledni_kontakt_id__isnull=(data["kontaktovan"] != "True"))
-
-    # řazení: nejnovější poslední kontakt první, bez „díry“ pro NULL
-    partneri = partneri.order_by(
-        OrderBy(F("posledni_datum"), descending=True, nulls_last=True),
-        "-id",
-    )
-
-    # stránkování
     paginator = Paginator(partneri, 25)
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
+
+    export_qs = request.GET.copy()
+    export_qs.pop("page", None)
+    export_query = export_qs.urlencode()
 
     return render(
         request,
@@ -209,8 +229,55 @@ def filtrovat_partnery(request):
             "partneri": page_obj,
             "sekce_list": sekce_list,
             "vysledky_kontaktu": KontaktHistorie.VYSLEDKY_KONTAKTU,
+            "export_query": export_query,
         },
     )
+
+
+@login_required
+@require_GET
+def export_partneru_json(request):
+    """
+    JSON export partnerů odpovídajících aktuálnímu filtru (data z DB).
+    Zahrnuti jen partneři s neprázdným e-mailem; duplicitní e-mail v exportu jen jednou.
+    """
+    partneri, _ = _partneri_queryset_pro_filtr(request)
+    partneri = partneri.only(
+        "jmeno",
+        "email",
+        "telefon",
+        "web",
+        "description",
+        "ICO",
+    )
+
+    seen_email = set()
+    rows = []
+    for p in partneri.iterator(chunk_size=500):
+        email = (p.email or "").strip()
+        if not email:
+            continue
+        key = email.lower()
+        if key in seen_email:
+            continue
+        seen_email.add(key)
+        ico_val = (p.ICO or "").strip() if p.ICO else ""
+        rows.append(
+            {
+                "email": email,
+                "company_name": _company_name_pro_export(p.jmeno),
+                "ico": ico_val,
+                "phone": (p.telefon or "").strip(),
+                "web": _normalize_export_web(p.web),
+                "description": (p.description or "").strip(),
+                "status": "lead",
+            }
+        )
+
+    payload = json.dumps(rows, ensure_ascii=False, indent=2)
+    resp = HttpResponse(payload, content_type="application/json; charset=utf-8")
+    resp["Content-Disposition"] = 'attachment; filename="partneri_export.json"'
+    return resp
 
 
 

@@ -56,9 +56,10 @@
                     {% endfor %}
                 </select>
             </div>
-            <div class="col-auto d-flex align-items-end gap-2">
+            <div class="col-auto d-flex align-items-end gap-2 flex-wrap">
                 <button type="submit" class="btn btn-primary">Vyhledat</button>
                 <a href="{{ request.path }}" class="btn btn-outline-secondary">Vymazat filtry</a>
+                <a href="{% url 'export_partneru_json' %}{% if export_query %}?{{ export_query }}{% endif %}" class="btn btn-success">Exportovat JSON (filtrovaní)</a>
             </div>
         </div>
     </form>

@@ -9,6 +9,11 @@ urlpatterns = [
     path('novy-partner/', views.pridat_partnera, name='novy_partner'),
     path('seznam/', views.seznam_partneru, name='seznam_partneru'),
     path('filtr/', views.filtrovat_partnery, name='filtr_partneru'),
+    path(
+        "filtr/export-json/",
+        views.export_partneru_json,
+        name="export_partneru_json",
+    ),
     path('', views.home, name='home'),
     path('editovat/<int:pk>/', views.editovat_partnera, name='editovat_partnera'),
     path('api/partneri/', views.partneri_json, name='partneri_json'),
