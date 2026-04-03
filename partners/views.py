@@ -242,14 +242,7 @@ def export_partneru_json(request):
     Zahrnuti jen partneři s neprázdným e-mailem; duplicitní e-mail v exportu jen jednou.
     """
     partneri, _ = _partneri_queryset_pro_filtr(request)
-    partneri = partneri.only(
-        "jmeno",
-        "email",
-        "telefon",
-        "web",
-        "description",
-        "ICO",
-    )
+    # Nelze kombinovat .only() s .select_related(...) z filtru (FieldError u key_account_manager).
 
     seen_email = set()
     rows = []
